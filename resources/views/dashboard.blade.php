@@ -340,5 +340,20 @@
             link.click();
             document.body.removeChild(link);
         });
+        // AJAX Polling every 10 seconds
+        setInterval(function () {
+            fetch('/api/dashboard-stats')
+                .then(response => response.json())
+                .then(data => {
+                    // Update the DOM elements (Make sure your <strong> tags have these IDs!)
+                    document.getElementById('stat-workouts').innerText = data.total_workouts;
+                    document.getElementById('stat-calories').innerText = data.total_calories.toLocaleString();
+                    document.getElementById('stat-focus').innerText = data.focus_count;
+
+                    console.log("Dashboard updated in real-time");
+                })
+                .catch(error => console.error('Error fetching stats:', error));
+        }, 10000); // 10,000 milliseconds = 10 seconds
+
     </script>
 @endpush

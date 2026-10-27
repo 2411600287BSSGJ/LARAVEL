@@ -18,19 +18,50 @@
                 <img src="{{ asset('js/assets/catsss.png') }}" alt="Fitness Tracker logo" class="navbar-brand-logo">
                 <span>Fitness Tracker</span>
             </a>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav ms-auto align-items-lg-center">
-                    <li class="nav-item">
-                        <span class="nav-link text-light">Welcome,
-                            <span>{{ auth()->user()->name ?? 'Admin' }}</span>!</span>
-                    </li>
-                    <li class="nav-item">
-                        <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                            @csrf
-                            <button type="submit" class="btn btn-outline-light btn-sm ms-lg-2">Logout</button>
-                        </form>
-                    </li>
-                </ul>
+
+            <div class="d-flex align-items-center ms-auto">
+                <span class="nav-link text-light me-3 d-none d-md-block">Welcome,
+                    {{ auth()->user()->name ?? 'Admin' }}!</span>
+
+                <!-- NOTIFICATION DROPDOWN -->
+                <div class="nav-item dropdown me-3">
+                    <a class="nav-link position-relative text-white" href="#" id="notifDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bell-fill fs-5"></i>
+                        @if(auth()->user()->unreadNotifications->count() > 0)
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ auth()->user()->unreadNotifications->count() }}
+                            </span>
+                        @endif
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="notifDropdown"
+                        style="width: 320px; z-index: 9999;">
+                        <li>
+                            <h6 class="dropdown-header text-uppercase fw-bold">Notifications</h6>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        @forelse(auth()->user()->unreadNotifications as $notification)
+                            <li>
+                                <!-- UPDATED LINK HERE -->
+                                <a class="dropdown-item text-wrap text-dark"
+                                    href="{{ route('notifications.read', $notification->id) }}">
+                                    <i class="bi bi-info-circle-fill text-danger me-2"></i>
+                                    {{ $notification->data['message'] }}
+                                </a>
+                            </li>
+                        @empty
+                            <li><span class="dropdown-item text-muted">No new alerts</span></li>
+                        @endforelse
+                    </ul>
+                </div>
+
+                <!-- LOGOUT BUTTON -->
+                <form method="POST" action="{{ route('logout') }}" class="d-inline m-0">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                </form>
             </div>
         </div>
     </nav>

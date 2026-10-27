@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Models\Workout;          
+use App\Observers\WorkoutObserver;  
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +21,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Workout::observe(WorkoutObserver::class); 
     }
 }

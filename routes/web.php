@@ -3,6 +3,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\WorkoutController;
 use App\Http\Controllers\ActivityLogController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Workout;
 
 // Redirect root to dashboard
@@ -36,9 +37,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/logs', [ActivityLogController::class, 'store'])->name('logs.store');
     Route::get('/logs/{log}', [ActivityLogController::class, 'show'])->name('logs.show');
 
+    // LAB 6: ADJUSTMENTS (PART 8)
+    Route::get('/logs-adjust', [ActivityLogController::class, 'adjust'])->name('logs.adjust');
+    Route::post('/logs-adjust', [ActivityLogController::class, 'processAdjust'])->name('logs.adjust.process');
+
     // LAB 6: NOTIFICATIONS
     Route::get('/notifications/{id}/read', function ($id) {
-        $notification = auth()->user()->notifications()->findOrFail($id);
+        // Using User model explicitly to fix the VS Code error
+        $user = \App\Models\User::find(Auth::id());
+        $notification = $user->notifications()->findOrFail($id);
         $notification->markAsRead();
         
         $workoutId = $notification->data['workout_id'] ?? null;

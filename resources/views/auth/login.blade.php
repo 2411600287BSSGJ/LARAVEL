@@ -64,14 +64,6 @@
                                 @enderror
                             </div>
 
-                            <!-- Remember Me -->
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" name="remember" id="remember">
-                                <label class="form-check-label text-muted" for="remember">
-                                    Remember me
-                                </label>
-                            </div>
-
                             <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold mt-2">
                                 <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
                             </button>

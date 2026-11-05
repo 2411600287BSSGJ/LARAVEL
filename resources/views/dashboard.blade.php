@@ -219,6 +219,62 @@
                 </div>
             </div>
 
+            <!-- ========================================== -->
+            <!-- LAB 7: PROCUREMENT WIDGET                  -->
+            <!-- ========================================== -->
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <div class="panel">
+                        <div class="panel-heading d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="eyebrow mb-1">Procurement</p>
+                                <h2>Pending Workout Plans</h2>
+                            </div>
+                            <span class="badge bg-danger fs-6">{{ $pendingPlansCount }} Pending</span>
+                        </div>
+
+                        <div class="table-responsive mt-3">
+                            <table class="table inventory-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Reference</th>
+                                        <th>Trainer</th>
+                                        <th>Date Created</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($recentPlans as $plan)
+                                        <tr>
+                                            <td><strong>{{ $plan->reference_number }}</strong></td>
+                                            <td>{{ $plan->trainer->name ?? 'Unknown' }}</td>
+                                            <td>{{ $plan->created_at->format('M d, Y') }}</td>
+                                            <td>
+                                                <span
+                                                    class="badge {{ $plan->status === 'approved' ? 'bg-success' : 'bg-warning text-dark' }}">
+                                                    {{ ucfirst($plan->status) }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{{ route('plans.show', $plan) }}"
+                                                    class="btn btn-sm btn-outline-primary">View Plan</a>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-3">No workout plans generated yet.
+                                                Run the automated goal checker!</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- ========================================== -->
+
             <!-- RECENT ACTIVITY LOG -->
             <div class="panel mb-4">
                 <div class="panel-heading">
@@ -340,12 +396,12 @@
             link.click();
             document.body.removeChild(link);
         });
+
         // AJAX Polling every 10 seconds
         setInterval(function () {
             fetch('/api/dashboard-stats')
                 .then(response => response.json())
                 .then(data => {
-                    // Update the DOM elements (Make sure your <strong> tags have these IDs!)
                     document.getElementById('stat-workouts').innerText = data.total_workouts;
                     document.getElementById('stat-calories').innerText = data.total_calories.toLocaleString();
                     document.getElementById('stat-focus').innerText = data.focus_count;
@@ -353,7 +409,7 @@
                     console.log("Dashboard updated in real-time");
                 })
                 .catch(error => console.error('Error fetching stats:', error));
-        }, 10000); // 10,000 milliseconds = 10 seconds
+        }, 10000);
 
     </script>
 @endpush

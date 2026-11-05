@@ -15,6 +15,23 @@
                         <i class="bi bi-dumbbell me-2"></i>Workouts
                     </a>
                 </li>
+
+                <!-- LAB 7: ADDED TRAINERS -->
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('trainers.*') ? 'active' : 'text-muted' }}"
+                        href="{{ route('trainers.index') }}">
+                        <i class="bi bi-person-badge me-2"></i>Trainers
+                    </a>
+                </li>
+
+                <!-- LAB 7: ADDED WORKOUT PLANS -->
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('plans.*') ? 'active' : 'text-muted' }}"
+                        href="{{ route('plans.index') }}">
+                        <i class="bi bi-clipboard-check me-2"></i>Workout Plans
+                    </a>
+                </li>
+
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('schedule') ? 'active' : 'text-muted' }}"
                         href="{{ route('schedule') }}">

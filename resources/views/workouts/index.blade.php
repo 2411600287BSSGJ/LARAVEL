@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="row">
-        <!-- SIDEBAR (Now handled by the partial file) -->
+        <!-- SIDEBAR -->
         @include('partials.sidebar')
 
         <!-- MAIN CONTENT (TABLE) -->
@@ -29,6 +29,7 @@
                             <tr>
                                 <th>Workout</th>
                                 <th>Type</th>
+                                <th>Trainer</th> <!-- ADDED -->
                                 <th>Minutes</th>
                                 <th>Calories</th>
                                 <th>Status</th>
@@ -40,6 +41,7 @@
                                 <tr>
                                     <td><strong>{{ $w->name }}</strong></td>
                                     <td>{{ $w->type }}</td>
+                                    <td>{{ $w->trainer->name ?? 'Unassigned' }}</td> <!-- ADDED -->
                                     <td>{{ $w->minutes }} min</td>
                                     <td>{{ $w->calories }} kcal</td>
                                     <td>

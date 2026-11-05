@@ -26,4 +26,9 @@ class Workout extends Model
     {
         return in_array($this->status, ['scheduled', 'missed']);
     }
+
+    public function trainer()
+    {
+      return $this->belongsTo(Trainer::class);
+    }
 }

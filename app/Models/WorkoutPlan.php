@@ -3,21 +3,20 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class WorkoutPlan extends Model
 {
-    protected $fillable = [
-        'reference_number',
-        'trainer_id',
-        'status',
-        'notes',
-        'created_by',
-        'approved_by',
-    ];
+    protected $fillable = ['reference_number', 'trainer_id', 'status', 'notes', 'created_by', 'approved_by'];
 
     public function trainer()
     {
         return $this->belongsTo(Trainer::class);
+    }
+
+    public function items()
+    {
+        return $this->hasMany(WorkoutPlanItem::class);
     }
 
     public function creator()
@@ -30,8 +29,8 @@ class WorkoutPlan extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    public function items()
+    public static function generateReferenceNumber(): string
     {
-        return $this->hasMany(WorkoutPlanItem::class);
+        return 'PLAN-'.Str::upper(Str::random(12));
     }
 }

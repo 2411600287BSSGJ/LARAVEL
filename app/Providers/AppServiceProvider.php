@@ -2,25 +2,20 @@
 
 namespace App\Providers;
 
+use App\Models\WorkoutPlan;
+use App\Policies\WorkoutPlanPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use App\Models\Workout;          
-use App\Observers\WorkoutObserver;  
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        Workout::observe(WorkoutObserver::class); 
+        \App\Models\Workout::observe(\App\Observers\WorkoutObserver::class);
+        Gate::policy(WorkoutPlan::class, WorkoutPlanPolicy::class);
     }
 }

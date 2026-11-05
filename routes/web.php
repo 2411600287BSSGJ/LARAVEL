@@ -1,6 +1,8 @@
 <?php
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\WorkoutController;
+use App\Http\Controllers\WorkoutPlanController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -66,6 +68,10 @@ Route::middleware(['auth'])->group(function () {
             'focus_count' => Workout::whereIn('status', ['scheduled', 'missed'])->count(),
         ]);
     }); 
+
+    Route::resource('trainers', TrainerController::class);
+    Route::resource('plans', WorkoutPlanController::class);
+    Route::post('/plans/{plan}/approve', [WorkoutPlanController::class, 'approve'])->name('plans.approve');
 });
 
 require __DIR__.'/auth.php';

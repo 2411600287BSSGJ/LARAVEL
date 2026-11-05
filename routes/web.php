@@ -10,14 +10,14 @@ use App\Models\Workout;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth; // <-- THIS WAS MISSING
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
-    return redirect()->route('dashboard'); // Redirect to dashboard instead of welcome page
+    return redirect()->route('dashboard');
 });
 
-    // Protected Routes
-    Route::middleware(['auth'])->group(function () {
+// Protected Routes
+Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -25,10 +25,26 @@ Route::get('/', function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('workouts', WorkoutController::class);
 
-    // SCHEDULE: Show upcoming workouts
+    // SCHEDULE: Show upcoming workouts + Calendar Data
     Route::get('/schedule', function () {
         $scheduledWorkouts = Workout::where('status', 'scheduled')->orderBy('id')->get();
-        return view('placeholder', ['title' => 'Schedule', 'type' => 'schedule', 'data' => $scheduledWorkouts]);
+        
+        // Format data for FullCalendar
+        $events = $scheduledWorkouts->map(function($w, $index) {
+            return [
+                'title' => $w->name . ' (' . $w->type . ')',
+                'start' => now()->addDays($index + 1)->format('Y-m-d'), // Dummy dates based on index
+                'backgroundColor' => '#b88a5a', 
+                'borderColor' => '#b88a5a',
+            ];
+        });
+
+        return view('placeholder', [
+            'title' => 'Schedule', 
+            'type' => 'schedule', 
+            'data' => $scheduledWorkouts,
+            'events' => $events
+        ]);
     })->name('schedule');
 
     // PROGRESS: Show completed workouts

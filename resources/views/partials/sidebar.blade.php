@@ -60,7 +60,9 @@
                 </div>
                 <div class="d-flex justify-content-between mb-1">
                     <span class="text-muted">Streak</span>
-                    <span class="fw-bold text-accent">0 days</span>
+                    <span class="fw-bold text-accent">
+                        {{ \App\Models\Workout::where('status', 'completed')->count() }} completed
+                    </span>
                 </div>
             </div>
         </div>

@@ -220,27 +220,27 @@
             </div>
 
             <!-- ========================================== -->
-            <!-- LAB 7: PROCUREMENT WIDGET                  -->
+            <!-- LAB 7: PROCUREMENT WIDGETS                 -->
             <!-- ========================================== -->
             <div class="row g-3 mb-4">
-                <div class="col-12">
-                    <div class="panel">
-                        <div class="panel-heading d-flex justify-content-between align-items-center">
+
+                <!-- Pending Plans Widget -->
+                <div class="col-lg-7">
+                    <div class="panel h-100">
+                        <div class="panel-heading d-flex justify-content-between align-items-center mb-3">
                             <div>
                                 <p class="eyebrow mb-1">Procurement</p>
-                                <h2>Pending Workout Plans</h2>
+                                <h2>Pending Plans</h2>
                             </div>
                             <span class="badge bg-danger fs-6">{{ $pendingPlansCount }} Pending</span>
                         </div>
 
-                        <div class="table-responsive mt-3">
+                        <div class="table-responsive">
                             <table class="table inventory-table mb-0">
                                 <thead>
                                     <tr>
                                         <th>Reference</th>
                                         <th>Trainer</th>
-                                        <th>Date Created</th>
-                                        <th>Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -249,22 +249,14 @@
                                         <tr>
                                             <td><strong>{{ $plan->reference_number }}</strong></td>
                                             <td>{{ $plan->trainer->name ?? 'Unknown' }}</td>
-                                            <td>{{ $plan->created_at->format('M d, Y') }}</td>
-                                            <td>
-                                                <span
-                                                    class="badge {{ $plan->status === 'approved' ? 'bg-success' : 'bg-warning text-dark' }}">
-                                                    {{ ucfirst($plan->status) }}
-                                                </span>
-                                            </td>
                                             <td>
                                                 <a href="{{ route('plans.show', $plan) }}"
-                                                    class="btn btn-sm btn-outline-primary">View Plan</a>
+                                                    class="btn btn-sm btn-outline-primary">View</a>
                                             </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="text-center text-muted py-3">No workout plans generated yet.
-                                                Run the automated goal checker!</td>
+                                            <td colspan="3" class="text-center text-muted py-3">No pending plans.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -272,44 +264,39 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Quick Action Widget -->
+                <div class="col-lg-5">
+                    <div class="panel h-100">
+                        <div class="panel-heading mb-3">
+                            <div>
+                                <p class="eyebrow mb-1">Quick Actions</p>
+                                <h2>Manage System</h2>
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2 mt-3">
+                            <a href="{{ route('workouts.create') }}" class="btn btn-outline-primary text-start">
+                                <i class="bi bi-plus-circle me-2"></i> Log a New Workout
+                            </a>
+                            <a href="{{ route('trainers.index') }}" class="btn btn-outline-secondary text-start">
+                                <i class="bi bi-person-badge me-2"></i> Manage Trainers
+                            </a>
+                            <a href="{{ route('plans.index') }}" class="btn btn-outline-secondary text-start">
+                                <i class="bi bi-clipboard-check me-2"></i> View All Workout Plans
+                            </a>
+                            <hr>
+                            <form action="{{ route('dashboard') }}" method="GET" class="d-grid">
+                                <button type="submit" class="btn btn-success text-start">
+                                    <i class="bi bi-arrow-clockwise me-2"></i> Refresh Dashboard Data
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
             </div>
             <!-- ========================================== -->
 
-            <!-- RECENT ACTIVITY LOG -->
-            <div class="panel mb-4">
-                <div class="panel-heading">
-                    <div>
-                        <p class="eyebrow mb-1">Activity log</p>
-                        <h2>Recent activity</h2>
-                    </div>
-                    <span class="badge bg-light text-dark">{{ count($recentActivities) }} events</span>
-                </div>
-                <div class="table-responsive activity-scroll mt-2" style="max-height: 300px; overflow-y: auto;">
-                    <table class="table inventory-table mb-0">
-                        <thead>
-                            <tr>
-                                <th>Date &amp; Time</th>
-                                <th>Workout</th>
-                                <th>Activity</th>
-                                <th>Category</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($recentActivities as $a)
-                                <tr>
-                                    <td><small class="text-muted">{{ $a->created_at->format('Y-m-d H:i') }}</small></td>
-                                    <td><strong>{{ $a->workout->name ?? 'Unknown' }}</strong><br><small
-                                            class="text-muted">#{{ $a->workout_id }}</small></td>
-                                    <td>{{ $a->description }}</td>
-                                    <td><span
-                                            class="status-badge status-{{ strtolower($a->category) }}"><span></span>{{ $a->category }}</span>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </main>
     </div>
 @endsection

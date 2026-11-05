@@ -1,21 +1,18 @@
 <?php
 
-namespace App\Providers;
+namespace App\Policies;
 
+use App\Models\User;
 use App\Models\WorkoutPlan;
-use App\Policies\WorkoutPlanPolicy;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\ServiceProvider;
 
-class AppServiceProvider extends ServiceProvider
+class WorkoutPlanPolicy
 {
-    public function register(): void
+    /**
+     * Determine whether the user can approve the model.
+     */
+    public function approve(User $user, WorkoutPlan $plan): bool
     {
-    }
-
-    public function boot(): void
-    {
-        \App\Models\Workout::observe(\App\Observers\WorkoutObserver::class);
-        Gate::policy(WorkoutPlan::class, WorkoutPlanPolicy::class);
+        // For this lab, we are assuming Admin (User ID 1) is the only one who can approve.
+        return $user->id === 1 && $plan->status === 'pending';
     }
 }

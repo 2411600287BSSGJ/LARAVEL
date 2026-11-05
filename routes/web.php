@@ -1,16 +1,19 @@
 <?php
+
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\WorkoutController;
 use App\Http\Controllers\WorkoutPlanController;
-use App\Http\Controllers\ActivityLogController;
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Workout;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth; // <-- THIS WAS MISSING
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('dashboard'); // Redirect to dashboard instead of welcome page
 });
 
 // Protected Routes
@@ -18,9 +21,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('workouts', WorkoutController::class);
-    
+
     // SCHEDULE: Show upcoming workouts
     Route::get('/schedule', function () {
         $scheduledWorkouts = Workout::where('status', 'scheduled')->orderBy('id')->get();
@@ -35,7 +39,7 @@ Route::middleware(['auth'])->group(function () {
 
     // SETTINGS: Just a view
     Route::view('/settings', 'placeholder', ['title' => 'Settings', 'type' => 'settings'])->name('settings');
-    
+
     // LAB 6: ACTIVITY LOGS
     Route::get('/logs', [ActivityLogController::class, 'index'])->name('logs.index');
     Route::get('/logs/create', [ActivityLogController::class, 'create'])->name('logs.create');
@@ -47,28 +51,31 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/logs-adjust', [ActivityLogController::class, 'processAdjust'])->name('logs.adjust.process');
 
     // LAB 6: NOTIFICATIONS
-    Route::get('/notifications/{id}/read', function ($id) {
-        // Using User model explicitly to fix the VS Code error
-        $user = \App\Models\User::find(Auth::id());
+    Route::get('/notifications/{id}/read', function (Request $request, string $id): RedirectResponse {
+        $user = $request->user();
+        abort_if($user === null, 401);
+
         $notification = $user->notifications()->findOrFail($id);
         $notification->markAsRead();
-        
-        $workoutId = $notification->data['workout_id'] ?? null;
+
+        $workoutId = data_get($notification->getAttribute('data'), 'workout_id');
         if ($workoutId) {
             return redirect()->route('workouts.edit', $workoutId);
         }
+
         return redirect()->route('dashboard');
     })->name('notifications.read');
 
     // LAB 6: API for AJAX Polling
-    Route::get('/api/dashboard-stats', function() {
+    Route::get('/api/dashboard-stats', function () {
         return response()->json([
             'total_workouts' => Workout::count(),
             'total_calories' => Workout::where('status', 'completed')->sum('calories'),
             'focus_count' => Workout::whereIn('status', ['scheduled', 'missed'])->count(),
         ]);
-    }); 
+    });
 
+    // LAB 7: TRAINERS & WORKOUT PLANS
     Route::resource('trainers', TrainerController::class);
     Route::resource('plans', WorkoutPlanController::class);
     Route::post('/plans/{plan}/approve', [WorkoutPlanController::class, 'approve'])->name('plans.approve');

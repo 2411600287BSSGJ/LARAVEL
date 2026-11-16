@@ -1,16 +1,21 @@
 <?php
+
 namespace App\Console\Commands;
-use Illuminate\Console\Command;
+
 use App\Services\ReorderService;
+use Illuminate\Console\Command;
 
 class CheckReorderPoints extends Command
 {
-    protected $signature = 'fitness:check-goals';
-    protected $description = 'Checks goals and generates workout plans';
+    protected $signature = 'inventory:check-reorder-points';
 
-    public function handle(ReorderService $service)
+    protected $description = 'Create purchase orders for products below their reorder levels';
+
+    public function handle(ReorderService $service): int
     {
-        $result = $service->checkGoals();
-        $this->info($result);
+        $created = $service->checkAllReorderPoints();
+        $this->info("Created {$created} purchase order(s).");
+
+        return self::SUCCESS;
     }
 }

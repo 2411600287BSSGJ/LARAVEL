@@ -1,0 +1,8 @@
+@extends('layouts.app')
+@section('title', 'Suppliers')
+@section('content')
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4"><div><p class="eyebrow mb-1">Procurement</p><h1 class="fw-bold mb-0">Suppliers</h1></div><div class="d-flex gap-2"><a class="btn btn-outline-success" href="{{ route('exports.download', 'suppliers') }}">Export CSV</a>@can('create', \App\Models\Supplier::class)<a class="btn btn-primary" href="{{ route('suppliers.create') }}">Add Supplier</a>@endcan</div></div>
+    <div class="panel table-responsive"><table class="table inventory-table align-middle mb-0"><thead><tr><th>Supplier</th><th>Contact</th><th>Lead time</th><th>Purchase orders</th><th>Fulfillment</th>@can('create', \App\Models\Supplier::class)<th></th>@endcan</tr></thead><tbody>
+        @forelse($suppliers as $supplier)<tr><td><strong>{{ $supplier->name }}</strong></td><td>{{ $supplier->contact_person ?: '—' }}<div class="small text-muted">{{ $supplier->email }}</div></td><td>{{ $supplier->lead_time_days }} days</td><td>{{ $supplier->purchase_orders_count }}</td><td>{{ number_format($supplier->calculatePerformance(), 2) }}%</td>@can('create', \App\Models\Supplier::class)<td class="text-nowrap"><a class="btn btn-sm btn-outline-primary" href="{{ route('suppliers.edit', $supplier) }}">Edit</a><form class="d-inline" method="POST" action="{{ route('suppliers.destroy', $supplier) }}" onsubmit="return confirm('Archive this supplier?')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger">Archive</button></form></td>@endcan</tr>@empty<tr><td colspan="6" class="text-center text-muted py-4">No suppliers yet.</td></tr>@endforelse
+    </tbody></table><div class="mt-3">{{ $suppliers->links() }}</div></div>
+@endsection

@@ -1,18 +1,36 @@
 <?php
 
-namespace App\Policies;
+namespace App\Providers;
 
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\InventoryTransaction;
+use App\Models\Product;
+use App\Models\PurchaseOrder;
+use App\Models\Supplier;
 use App\Models\User;
-use App\Models\WorkoutPlan;
+use App\Policies\BrandPolicy;
+use App\Policies\CategoryPolicy;
+use App\Policies\InventoryTransactionPolicy;
+use App\Policies\ProductPolicy;
+use App\Policies\PurchaseOrderPolicy;
+use App\Policies\SupplierPolicy;
+use App\Policies\UserPolicy;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
 
-class WorkoutPlanPolicy
+class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Determine whether the user can approve the model.
-     */
-    public function approve(User $user, WorkoutPlan $plan): bool
+    public function register(): void {}
+
+    public function boot(): void
     {
-        // For this lab, we are assuming Admin (User ID 1) is the only one who can approve.
-        return $user->id === 1 && $plan->status === 'pending';
+        Gate::policy(Product::class, ProductPolicy::class);
+        Gate::policy(Brand::class, BrandPolicy::class);
+        Gate::policy(Category::class, CategoryPolicy::class);
+        Gate::policy(Supplier::class, SupplierPolicy::class);
+        Gate::policy(InventoryTransaction::class, InventoryTransactionPolicy::class);
+        Gate::policy(PurchaseOrder::class, PurchaseOrderPolicy::class);
+        Gate::policy(User::class, UserPolicy::class);
     }
 }

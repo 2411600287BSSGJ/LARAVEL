@@ -1,100 +1,42 @@
 <?php
 
-use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExportController;
+use App\Http\Controllers\InventoryTransactionController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\TrainerController;
-use App\Http\Controllers\WorkoutController;
-use App\Http\Controllers\WorkoutPlanController;
-use App\Models\Workout;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
-// Protected Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::resource('workouts', WorkoutController::class);
-
-    // SCHEDULE: Show upcoming workouts + Calendar Data
-    Route::get('/schedule', function () {
-        $scheduledWorkouts = Workout::where('status', 'scheduled')->orderBy('id')->get();
-        
-        // Format data for FullCalendar
-        $events = $scheduledWorkouts->map(function($w, $index) {
-            return [
-                'title' => $w->name . ' (' . $w->type . ')',
-                'start' => now()->addDays($index + 1)->format('Y-m-d'), // Dummy dates based on index
-                'backgroundColor' => '#b88a5a', 
-                'borderColor' => '#b88a5a',
-            ];
-        });
-
-        return view('placeholder', [
-            'title' => 'Schedule', 
-            'type' => 'schedule', 
-            'data' => $scheduledWorkouts,
-            'events' => $events
-        ]);
-    })->name('schedule');
-
-    // PROGRESS: Show completed workouts
-    Route::get('/progress', function () {
-        $completedWorkouts = Workout::where('status', 'completed')->orderByDesc('calories')->get();
-        return view('placeholder', ['title' => 'Progress', 'type' => 'progress', 'data' => $completedWorkouts]);
-    })->name('progress');
-
-    // SETTINGS: Just a view
-    Route::view('/settings', 'placeholder', ['title' => 'Settings', 'type' => 'settings'])->name('settings');
-
-    // LAB 6: ACTIVITY LOGS
-    Route::get('/logs', [ActivityLogController::class, 'index'])->name('logs.index');
-    Route::get('/logs/create', [ActivityLogController::class, 'create'])->name('logs.create');
-    Route::post('/logs', [ActivityLogController::class, 'store'])->name('logs.store');
-    Route::get('/logs/{log}', [ActivityLogController::class, 'show'])->name('logs.show');
-
-    // LAB 6: ADJUSTMENTS (PART 8)
-    Route::get('/logs-adjust', [ActivityLogController::class, 'adjust'])->name('logs.adjust');
-    Route::post('/logs-adjust', [ActivityLogController::class, 'processAdjust'])->name('logs.adjust.process');
-
-    // LAB 6: NOTIFICATIONS
-    Route::get('/notifications/{id}/read', function (Request $request, string $id): RedirectResponse {
-        $user = $request->user();
-        abort_if($user === null, 401);
-
-        $notification = $user->notifications()->findOrFail($id);
-        $notification->markAsRead();
-
-        $workoutId = data_get($notification->getAttribute('data'), 'workout_id');
-        if ($workoutId) {
-            return redirect()->route('workouts.edit', $workoutId);
-        }
-
-        return redirect()->route('dashboard');
-    })->name('notifications.read');
-
-    // LAB 6: API for AJAX Polling
-    Route::get('/api/dashboard-stats', function () {
-        return response()->json([
-            'total_workouts' => Workout::count(),
-            'total_calories' => Workout::where('status', 'completed')->sum('calories'),
-            'focus_count' => Workout::whereIn('status', ['scheduled', 'missed'])->count(),
-        ]);
-    });
-
-    // LAB 7: TRAINERS & WORKOUT PLANS
-    Route::resource('trainers', TrainerController::class);
-    Route::resource('plans', WorkoutPlanController::class);
-    Route::post('/plans/{plan}/approve', [WorkoutPlanController::class, 'approve'])->name('plans.approve');
+    Route::resource('products', ProductController::class)->except(['show']);
+    Route::resource('brands', BrandController::class)->except(['show']);
+    Route::resource('categories', CategoryController::class)->except(['show']);
+    Route::resource('suppliers', SupplierController::class)->except(['show']);
+    Route::get('/transactions', [InventoryTransactionController::class, 'index'])->name('transactions.index');
+    Route::get('/transactions/create', [InventoryTransactionController::class, 'create'])->name('transactions.create');
+    Route::post('/transactions', [InventoryTransactionController::class, 'store'])->name('transactions.store');
+    Route::get('/purchase-orders', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
+    Route::get('/purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->name('purchase-orders.show');
+    Route::post('/purchase-orders/{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])->name('purchase-orders.receive');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/exports/{table}', [ExportController::class, 'download'])->name('exports.download');
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.role');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 });
 
 require __DIR__.'/auth.php';

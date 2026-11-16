@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fitness Tracker - Login</title>
+    <title>Gym Inventory - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
@@ -18,10 +18,10 @@
                 <div class="card shadow-lg border-0 rounded-4 login-card">
                     <div class="card-header bg-transparent border-0 text-center pt-4">
                         <div class="brand-icon mb-3">
-                            <img src="{{ asset('js/assets/catsss.png') }}" alt="Fitness Tracker logo"
+                            <img src="{{ asset('js/assets/catsss.png') }}" alt="Gym Inventory logo"
                                 class="brand-logo">
                         </div>
-                        <h2 class="fw-bold text-primary">Fitness Tracker</h2>
+                        <h2 class="fw-bold text-primary">Gym Inventory</h2>
                         <p class="text-muted">Sign in to your dashboard</p>
                     </div>
                     <div class="card-body px-4 py-3">
@@ -78,7 +78,7 @@
                         </form>
                     </div>
                     <div class="card-footer bg-transparent border-0 text-center pb-4">
-                        <small class="text-muted">&copy; 2026 Fitness Tracker. All rights reserved.</small>
+                        <small class="text-muted">&copy; {{ date('Y') }} Gym Inventory. All rights reserved.</small>
                     </div>
                 </div>
             </div>

@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\Trainer;
-use App\Models\User;
-use App\Models\WorkoutPlan;
+use App\Models\Product;
+use App\Models\PurchaseOrder;
+use App\Models\Supplier;
 use App\Services\ReorderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -13,43 +13,64 @@ class ReorderServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_does_not_create_a_plan_without_an_active_trainer_or_user(): void
+    public function test_it_creates_one_purchase_order_when_stock_is_below_the_reorder_level(): void
     {
-        User::factory()->create();
-        $service = new ReorderService();
-
-        $this->assertSame(
-            'No active trainer is available; no workout plan was created.',
-            $service->checkGoals()
-        );
-        $this->assertDatabaseCount('workout_plans', 0);
-
-        Trainer::create([
-            'name' => 'Coach One',
-            'email' => 'coach@example.com',
-            'specialty' => 'Strength',
+        $supplier = Supplier::create(['name' => 'Iron Works']);
+        $product = Product::create([
+            'name' => 'Dumbbell Set',
+            'sku' => 'DB-001',
+            'supplier_id' => $supplier->id,
+            'quantity' => 3,
+            'reorder_level' => 5,
+            'unit_price' => 49.99,
         ]);
-        User::query()->delete();
+        $service = new ReorderService;
 
-        $this->assertSame(
-            'No user is available to own the workout plan.',
-            $service->checkGoals()
-        );
-        $this->assertDatabaseCount('workout_plans', 0);
+        $firstOrder = $service->checkReorderPoint($product);
+        $secondOrder = $service->checkReorderPoint($product);
+
+        $this->assertNotNull($firstOrder);
+        $this->assertSame($firstOrder->id, $secondOrder?->id);
+        $this->assertSame(2, $firstOrder->quantity);
+        $this->assertSame($supplier->id, $firstOrder->supplier_id);
+        $this->assertDatabaseCount('purchase_orders', 1);
     }
 
-    public function test_it_creates_only_one_pending_automated_plan(): void
+    public function test_it_does_not_order_at_or_above_the_reorder_level(): void
     {
-        User::factory()->create();
-        Trainer::create([
-            'name' => 'Coach One',
-            'email' => 'coach@example.com',
-            'specialty' => 'Strength',
+        $product = Product::create([
+            'name' => 'Protein Powder',
+            'sku' => 'PP-001',
+            'quantity' => 5,
+            'reorder_level' => 5,
+            'unit_price' => 29.99,
         ]);
-        $service = new ReorderService();
 
-        $this->assertStringContainsString('Auto-generated', $service->checkGoals());
-        $this->assertSame('A pending automated workout plan already exists.', $service->checkGoals());
-        $this->assertDatabaseCount('workout_plans', 1);
+        $this->assertNull((new ReorderService)->checkReorderPoint($product));
+        $this->assertDatabaseCount('purchase_orders', 0);
+    }
+
+    public function test_supplier_performance_is_the_percentage_of_received_orders(): void
+    {
+        $supplier = Supplier::create(['name' => 'Gym Supply Co']);
+        $product = Product::create([
+            'name' => 'Barbell',
+            'sku' => 'BB-001',
+            'quantity' => 20,
+            'reorder_level' => 5,
+            'unit_price' => 120,
+        ]);
+
+        foreach (['received', 'pending'] as $status) {
+            PurchaseOrder::create([
+                'reference' => PurchaseOrder::generateReference(),
+                'product_id' => $product->id,
+                'supplier_id' => $supplier->id,
+                'quantity' => 5,
+                'status' => $status,
+            ]);
+        }
+
+        $this->assertSame(50.0, $supplier->calculatePerformance());
     }
 }

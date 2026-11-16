@@ -26,6 +26,7 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
+        $this->assertDatabaseHas('users', ['email' => 'test@example.com', 'role' => 'staff']);
         $response->assertRedirect(route('dashboard', absolute: false));
     }
 }

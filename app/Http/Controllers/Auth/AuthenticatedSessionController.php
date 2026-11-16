@@ -21,14 +21,26 @@ class AuthenticatedSessionController extends Controller
 
     /**
      * Handle an incoming authentication request.
+     * Validates credentials, then sends OTP instead of logging in directly.
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        // Validate credentials without actually logging the user in
         $request->authenticate();
 
-        $request->session()->regenerate();
+        // Get the authenticated user then immediately log them out
+        $user = Auth::user();
+        Auth::logout();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Store user info in session for OTP step
+        $request->session()->put('otp_user_id', $user->id);
+        $request->session()->put('otp_email',   $user->email);
+        $request->session()->put('otp_remember', $request->boolean('remember'));
+
+        // Send the 6-digit OTP via Resend email
+        OtpController::sendOtp($user);
+
+        return redirect()->route('otp.show');
     }
 
     /**
@@ -39,7 +51,6 @@ class AuthenticatedSessionController extends Controller
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');

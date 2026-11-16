@@ -6,10 +6,10 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
             <p class="text-uppercase text-muted small fw-bold mb-1">
-                <i class="bi bi-box-seam text-primary me-1"></i>Hardware Inventory
+                <i class="bi bi-activity text-danger me-1"></i>Gym Equipment & Inventory
             </p>
-            <h1 class="h2 fw-bold mb-1">Product Catalog</h1>
-            <p class="text-muted mb-0">Manage hardware products, stock levels, reorder thresholds, and pricing.</p>
+            <h1 class="h2 fw-bold mb-1">Equipment Catalog</h1>
+            <p class="text-muted mb-0">Manage gym equipment, free weights, machines, accessories, and nutrition stock.</p>
         </div>
         <div class="d-flex gap-2">
             <a class="btn btn-outline-success" href="{{ route('reports.export.valuation') }}">
@@ -106,7 +106,7 @@
                                 {{ $product->reorder_level }}
                             </td>
                             <td class="text-end fw-semibold">
-                                ${{ number_format((float) $product->unit_price, 2) }}
+                                ₱{{ number_format((float) $product->unit_price, 2) }}
                             </td>
                             <td class="text-center">
                                 <span class="badge bg-{{ $product->stock_status_color }}">

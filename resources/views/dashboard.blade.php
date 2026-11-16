@@ -6,7 +6,7 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
             <p class="text-uppercase text-muted small fw-bold mb-1">
-                <i class="bi bi-hammer text-danger me-1"></i>Hardware Store Operations
+                <i class="bi bi-activity text-danger me-1"></i>Gym Floor & Warehouse Operations
             </p>
             <h1 class="h2 fw-bold mb-1">Inventory Dashboard</h1>
             <p class="text-muted mb-0">Real-time inventory levels, stock alerts, and valuation.</p>
@@ -91,7 +91,7 @@
                 <div class="card-body d-flex justify-content-between align-items-center p-3">
                     <div>
                         <span class="text-muted small text-uppercase fw-semibold">Inventory Valuation</span>
-                        <h2 class="fw-bold text-success mb-0 mt-1" id="stat-inventory-value">${{ number_format((float) $inventoryValue, 2) }}</h2>
+                        <h2 class="fw-bold text-success mb-0 mt-1" id="stat-inventory-value">₱{{ number_format((float) $inventoryValue, 2) }}</h2>
                         <small class="text-muted">Quantity × Unit Price</small>
                     </div>
                     <div class="stat-icon bg-success-subtle text-success">
@@ -146,7 +146,7 @@
                             <td><span class="badge bg-secondary-subtle text-secondary">{{ $item->category_name }}</span></td>
                             <td><strong class="text-{{ $item->quantity == 0 ? 'danger' : 'warning' }}">{{ $item->quantity }}</strong></td>
                             <td>{{ $item->reorder_level }}</td>
-                            <td>${{ number_format($item->unit_price, 2) }}</td>
+                            <td>₱{{ number_format($item->unit_price, 2) }}</td>
                             <td>
                                 <span class="badge bg-{{ $item->stock_status_color }}">
                                     {{ $item->stock_status }}
@@ -170,9 +170,45 @@
         </div>
     </div>
 
-    <!-- Recent Products & Recent Transactions -->
+    <!-- Charts Row -->
     <div class="row g-4 mb-4">
-        <!-- Recent Products -->
+        <!-- Stock Status Doughnut Chart -->
+        <div class="col-xl-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Stock Status</h5>
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center" style="min-height:260px">
+                    <canvas id="stockStatusChart" height="240"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Value by Category Bar Chart -->
+        <div class="col-xl-8">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-bar-chart-fill text-success me-2"></i>Inventory Value by Category <small class="text-muted fw-normal fs-6">(₱)</small></h5>
+                </div>
+                <div class="card-body" style="min-height:260px">
+                    <canvas id="categoryValueChart" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Movement (Last 7 Days) Line Chart -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white border-bottom py-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-graph-up-arrow text-info me-2"></i>Stock Movements – Last 7 Days</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="stockMovementChart" height="100"></canvas>
+        </div>
+    </div>
+
+    <!-- Recent Products & Recent Transactions -->
+    <div class="row g-4 mb-4">        <!-- Recent Products -->
         <div class="col-xl-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
@@ -201,7 +237,7 @@
                                     </td>
                                     <td><span class="badge bg-light text-dark border">{{ $product->category_name }}</span></td>
                                     <td><strong>{{ $product->quantity }}</strong></td>
-                                    <td>${{ number_format($product->unit_price, 2) }}</td>
+                                    <td>₱{{ number_format($product->unit_price, 2) }}</td>
                                     <td>
                                         <span class="badge bg-{{ $product->stock_status_color }}">
                                             {{ $product->stock_status }}
@@ -374,5 +410,115 @@
 
     // Initialize polling interval (30 seconds)
     setInterval(pollDashboardData, 30000);
+</script>
+
+@php
+    // Chart data prepared server-side
+    $inStock  = \App\Models\Product::whereColumn('quantity', '>', 'reorder_level')->count();
+    $lowStock2 = \App\Models\Product::whereColumn('quantity', '<=', 'reorder_level')->where('quantity', '>', 0)->count();
+    $outStock  = \App\Models\Product::where('quantity', '<=', 0)->count();
+
+    $catValues = \App\Models\Product::selectRaw("category, COALESCE(SUM(quantity * unit_price),0) as total")
+        ->whereNotNull('category')->groupBy('category')->orderByDesc('total')->take(8)->get();
+
+    $days  = collect(range(6,0))->map(fn($d) => now()->subDays($d)->format('M d'));
+    $stockIn  = collect(range(6,0))->map(fn($d) =>
+        \App\Models\InventoryTransaction::whereIn('type',['stock_in','in','inbound'])
+            ->whereDate('created_at', now()->subDays($d))->sum('quantity') ?? 0
+    );
+    $stockOut = collect(range(6,0))->map(fn($d) =>
+        \App\Models\InventoryTransaction::whereIn('type',['stock_out','out','outbound'])
+            ->whereDate('created_at', now()->subDays($d))->sum('quantity') ?? 0
+    );
+@endphp
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+// Stock Status Doughnut
+new Chart(document.getElementById('stockStatusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['In Stock', 'Low Stock', 'Out of Stock'],
+        datasets: [{
+            data: [{{ $inStock }}, {{ $lowStock2 }}, {{ $outStock }}],
+            backgroundColor: ['#198754','#ffc107','#dc3545'],
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+                callbacks: {
+                    label: ctx => ` ${ctx.label}: ${ctx.parsed} products`
+                }
+            }
+        }
+    }
+});
+
+// Category Value Bar Chart
+new Chart(document.getElementById('categoryValueChart'), {
+    type: 'bar',
+    data: {
+        labels: {!! json_encode($catValues->pluck('category')) !!},
+        datasets: [{
+            label: 'Inventory Value (₱)',
+            data: {!! json_encode($catValues->pluck('total')->map(fn($v) => round((float)$v, 2))) !!},
+            backgroundColor: 'rgba(13,110,253,0.75)',
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: {
+                ticks: {
+                    callback: v => '₱' + Number(v).toLocaleString()
+                }
+            }
+        }
+    }
+});
+
+// Stock Movement Line Chart
+new Chart(document.getElementById('stockMovementChart'), {
+    type: 'line',
+    data: {
+        labels: {!! json_encode($days->values()) !!},
+        datasets: [
+            {
+                label: 'Stock In',
+                data: {!! json_encode($stockIn->values()) !!},
+                borderColor: '#198754',
+                backgroundColor: 'rgba(25,135,84,0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4
+            },
+            {
+                label: 'Stock Out',
+                data: {!! json_encode($stockOut->values()) !!},
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220,53,69,0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'top' } },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { stepSize: 1 }
+            }
+        }
+    }
+});
 </script>
 @endpush

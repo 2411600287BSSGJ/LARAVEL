@@ -38,10 +38,16 @@ class ProfileController extends Controller
     }
 
     /**
-     * Delete the user's account.
+     * Delete the user's account (staff only — admins cannot self-delete).
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Admins are protected from self-deletion
+        if ($request->user()->role === 'admin') {
+            return Redirect::route('profile.edit')
+                ->with('error', 'Administrator accounts cannot be self-deleted. Contact another admin.');
+        }
+
         $request->validateWithBag('userDeletion', [
             'password' => ['required', 'current_password'],
         ]);

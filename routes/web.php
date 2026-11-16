@@ -58,6 +58,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/export/low-stock', [ReportController::class, 'exportLowStock'])->name('reports.export.low-stock');
     Route::get('/reports/export/valuation', [ReportController::class, 'exportValuation'])->name('reports.export.valuation');
     Route::get('/exports/{table}', [ExportController::class, 'download'])->name('exports.download');
+    // CSV specific shortcuts
+    Route::get('export/products/csv', [ExportController::class, 'download'])->where('table', 'products')->name('export.products.csv');
+    Route::get('export/purchase-orders/csv', [ExportController::class, 'download'])->where('table', 'purchase-orders')->name('export.purchase_orders.csv');
+    Route::get('export/transactions/csv', [ExportController::class, 'download'])->where('table', 'transactions')->name('export.transactions.csv');
+    Route::get('export/suppliers/csv', [ExportController::class, 'download'])->where('table', 'suppliers')->name('export.suppliers.csv');
 
     // Notifications
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllRead');

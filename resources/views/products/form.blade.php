@@ -16,7 +16,7 @@
                            class="form-control @error('name') is-invalid @enderror"
                            id="name"
                            name="name"
-                           placeholder="e.g. 2x4x8 Kiln-Dried Douglas Fir Stud"
+                           placeholder="e.g. Rubber Hex Dumbbell Set (5 - 50 lbs)"
                            value="{{ old('name', $product->name ?? '') }}"
                            required>
                     @error('name')
@@ -33,7 +33,7 @@
                            class="form-control font-monospace @error('sku') is-invalid @enderror"
                            id="sku"
                            name="sku"
-                           placeholder="e.g. LUM-DF-248"
+                           placeholder="e.g. GYM-DB-550"
                            value="{{ old('sku', $product->sku ?? '') }}"
                            required>
                     @error('sku')
@@ -51,11 +51,11 @@
                            class="form-control @error('category') is-invalid @enderror"
                            id="category"
                            name="category"
-                           placeholder="Select or type category (e.g. Lumber, Tools...)"
+                           placeholder="Select or type category (e.g. Free Weights, Cardio...)"
                            value="{{ old('category', $product->category_name ?? '') }}"
                            required>
                     <datalist id="category-suggestions">
-                        @foreach($categoryList ?? ['Lumber', 'Hardware', 'Tools', 'Electrical', 'Plumbing', 'Paint'] as $cat)
+                        @foreach($categoryList ?? ['Free Weights', 'Cardio Equipment', 'Strength Machines', 'Fitness Accessories', 'Supplements & Nutrition', 'Recovery & Mobility'] as $cat)
                             <option value="{{ $cat }}">
                         @endforeach
                     </datalist>

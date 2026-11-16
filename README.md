@@ -1,47 +1,205 @@
-# Gym Inventory Management System
+# 🏋️ Gym Inventory Management System
 
-A Laravel application for tracking gym equipment and supplements, recording stock movements, and managing supplier replenishment.
+A full-featured Laravel web application for tracking gym equipment and supplements, recording stock movements, managing supplier replenishment, and securing access with email OTP authentication.
 
-## Requirements
+---
 
+## ✨ Features
+
+### 🔐 Authentication & Security
+- **Email OTP Login** — After entering valid credentials, a 6-digit one-time password is sent to the user's email via [Resend](https://resend.com). Login only completes after OTP verification.
+- **Email OTP Registration** — New accounts are not created until the user verifies their email with a 6-digit OTP. Codes expire in 10 minutes.
+- **Role-based access control** — `admin` and `staff` roles with different permissions.
+- **Admin account protection** — Administrators cannot delete their own accounts (enforced at both controller and view level).
+
+### 📦 Inventory Management
+- Full **CRUD** for products, brands, categories, suppliers, and equipment types.
+- **Stock In / Stock Out / Adjustment** transactions with automatic quantity tracking.
+- Stock-out transactions **cannot reduce inventory below zero**.
+- When quantity drops below the reorder level, **one pending purchase order** is automatically created (no duplicates).
+- Purchase orders can be **received** by an administrator — this adds stock and records an inbound transaction.
+- Hourly reorder check via Laravel Scheduler: `php artisan inventory:check-reorder-points`.
+- All key models use **soft deletes**.
+
+### 📊 Dashboard & Charts
+- **Live stat cards** — Total Products, Low Stock, Out of Stock, Total Inventory Value (auto-refreshed via AJAX every 30 s).
+- **Doughnut chart** — Stock status breakdown (In Stock / Low Stock / Out of Stock).
+- **Bar chart** — Inventory value by category (₱ Philippine Peso).
+- **Line chart** — Stock movements over the last 7 days.
+- **Low stock alerts** — Bell notification badge in the navbar with real-time counts.
+
+### 💱 Philippine Peso (₱) Pricing
+- All prices displayed in **Philippine Peso (₱)** throughout the app — dashboard stat cards, product listings, detail pages, and API responses.
+
+### 🪟 Glassmorphism UI
+- All cards, panels, tables, modals, dropdowns, alerts, and form inputs use a **frosted glass effect** (`backdrop-filter: blur`) over the background image, keeping text fully readable.
+- Smooth hover animations and transitions throughout.
+
+### 📧 Email (Resend)
+- Transactional email powered by [Resend](https://resend.com) (`resend/resend-laravel`).
+- OTP emails sent on every login and registration attempt.
+
+### 📄 Exports
+- **CSV downloads** for products, brands, categories, suppliers, transactions, purchase orders, and (admin only) users. Password data is never exported.
+
+### 👤 My Profile
+- View and update profile information (name, email).
+- Change password with current-password verification.
+- Account summary card (role, join date, email status).
+- Staff accounts have a **Delete My Account** option (admin-protected via modal + controller guard).
+
+---
+
+## 🚀 Quick Start
+
+### Requirements
 - PHP 8.2+
 - Composer
-- Node.js and npm (for front-end assets)
-- A database supported by Laravel
+- MySQL (XAMPP recommended on Windows)
+- Internet connection (for Resend email OTP)
 
-## Setup
+### Option A — One-click startup (Windows / XAMPP)
+
+1. Start **XAMPP** and ensure **Apache** and **MySQL** are running.
+2. Double-click **`start.bat`** in the project root.
+   - Automatically creates the `inventory_db` database if it doesn't exist.
+   - Runs `php artisan migrate --seed`.
+   - Starts the development server at **http://127.0.0.1:8000**.
+
+### Option B — Manual setup
 
 ```bash
 composer install
 copy .env.example .env
 php artisan key:generate
+# Edit .env — set DB_DATABASE, DB_USERNAME, DB_PASSWORD, RESEND_API_KEY
 php artisan migrate --seed
-npm install
-npm run build
 php artisan serve
 ```
 
-Newly registered users receive the **Staff** role. Register the account that should manage the system, then grant administrator access from the command line:
+---
+
+## ⚙️ Environment Variables
+
+Copy `.env.example` to `.env` and configure:
+
+```dotenv
+APP_NAME="Gym Inventory"
+APP_URL=http://127.0.0.1:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=inventory_db
+DB_USERNAME=root
+DB_PASSWORD=
+
+# Email — Resend
+MAIL_MAILER=resend
+MAIL_FROM_ADDRESS=onboarding@resend.dev
+MAIL_FROM_NAME="Gym Inventory"
+RESEND_API_KEY=your_resend_api_key_here
+```
+
+> **Note:** The Resend free tier only allows sending from `onboarding@resend.dev`. To send OTPs to any email address, verify your own domain at [resend.com/domains](https://resend.com/domains) and update `MAIL_FROM_ADDRESS`.
+
+---
+
+## 👥 User Roles
+
+| Action | Admin | Staff |
+|---|---|---|
+| View inventory | ✅ | ✅ |
+| Record stock transactions | ✅ | ✅ |
+| Manage products / suppliers | ✅ | ❌ |
+| Manage users & roles | ✅ | ❌ |
+| Receive purchase orders | ✅ | ❌ |
+| Delete own account | ❌ | ✅ |
+| Export data | ✅ | ✅ |
+
+Newly registered users receive the **Staff** role. To promote to admin:
 
 ```bash
 php artisan inventory:make-admin admin@example.com
 ```
 
-Administrators can manage products, manufacturers, equipment types, suppliers, and user roles. Staff can view inventory and record stock transactions.
+---
 
-## Inventory behavior
+## 🗄️ Database
 
-- A stock-out transaction cannot reduce available inventory below zero.
-- When a product's quantity falls below its reorder level, the system creates one pending purchase order for the quantity needed to reach that level. Repeated checks do not duplicate a pending order.
-- Pending purchase orders can be received by an administrator. Receiving adds the ordered quantity to inventory and records an inbound transaction.
-- `php artisan inventory:check-reorder-points` checks all products. Laravel's scheduler runs this check hourly.
-- Product, supplier, purchase-order, and transaction records use soft deletes.
-- CSV downloads are available for products, brands, categories, suppliers, transactions, purchase orders, and (for administrators) users. Password data is never exported.
+- **Auto-created** on first boot via `AppServiceProvider` (MySQL only; SQLite for tests is handled automatically).
+- Main migration: `2026_11_16_000001_create_inventory_management_tables.php`
+- OTP migration: `2026_11_16_161925_add_otp_to_users_table.php` — adds `otp_code` and `otp_expires_at` to `users`.
 
-The migration `2026_11_16_000002_remove_legacy_fitness_tables` permanently drops the former workout, trainer, plan, activity-log, and notification tables. Back up any existing database data before applying it.
+> ⚠️ The migration `2026_11_16_000002_remove_legacy_fitness_tables` permanently drops former workout, trainer, plan, activity-log, and notification tables. Back up any existing data before applying it.
 
-## Tests
+---
+
+## 🧪 Tests
 
 ```bash
 php artisan test
 ```
+
+**45 tests, 174 assertions** — all passing.
+
+Test coverage includes:
+- Authentication (login, logout, OTP flow)
+- Registration (OTP gating — account not created until verified)
+- Product CRUD lifecycle
+- Stock In / Stock Out / Adjustment transactions
+- Reorder point logic and purchase order creation
+- Low stock notifications
+- CSV export integrity
+- API endpoint responses
+- Role-based access control
+- Profile management
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Laravel 11 |
+| Frontend | Bootstrap 5.3.3 + Chart.js 4.4.3 |
+| Icons | Bootstrap Icons 1.11.3 |
+| Email | Resend (`resend/resend-laravel`) |
+| Exports | Maatwebsite Excel + barryvdh/laravel-dompdf |
+| Database | MySQL (production) / SQLite in-memory (tests) |
+| Auth | Laravel Breeze + custom Email OTP 2FA |
+
+---
+
+## 📁 Key File Structure
+
+```
+app/
+├── Http/Controllers/
+│   ├── Auth/
+│   │   ├── AuthenticatedSessionController.php  # OTP login trigger
+│   │   ├── RegisteredUserController.php        # OTP registration trigger
+│   │   └── OtpController.php                   # OTP send/verify logic
+│   ├── ProfileController.php                   # Admin delete guard
+│   └── Api/DashboardApiController.php          # Live dashboard JSON
+├── Models/User.php                             # OTP fields + role
+└── Providers/AppServiceProvider.php            # Auto DB creation
+
+resources/views/
+├── auth/otp.blade.php                          # 6-digit OTP UI
+├── dashboard.blade.php                         # Charts + live stats
+├── profile/edit.blade.php                      # My Profile page
+└── layouts/app.blade.php                       # Main layout
+
+public/css/
+├── style.css                                   # Core glassmorphism theme
+└── custom.css                                  # Global glass card overrides
+
+start.bat                                       # Windows one-click launcher
+```
+
+---
+
+## 📜 License
+
+MIT

@@ -40,21 +40,22 @@ class HardwareInventorySystemTest extends TestCase
     {
         $response = $this->get(route('login'));
         $response->assertStatus(200);
-        $response->assertSee('Hardware Inventory');
+        $response->assertSee('Gym Inventory');
         $response->assertSee('custom.css');
     }
 
     public function test_user_can_authenticate_and_access_dashboard(): void
     {
+        // With OTP 2FA, POST /login redirects to OTP verify page (not dashboard)
         $response = $this->post(route('login'), [
-            'email' => 'admin@hardware.com',
+            'email'    => 'admin@hardware.com',
             'password' => 'password',
         ]);
+        $response->assertRedirect(route('otp.show'));
+        $this->assertGuest(); // Not yet authenticated — waiting for OTP
 
-        $response->assertRedirect(route('dashboard'));
-        $this->assertAuthenticatedAs($this->admin);
-
-        $dashboard = $this->get(route('dashboard'));
+        // Simulate OTP completion by using actingAs directly
+        $dashboard = $this->actingAs($this->admin)->get(route('dashboard'));
         $dashboard->assertStatus(200);
         $dashboard->assertSee('Inventory Dashboard');
         $dashboard->assertSee('Total Products');

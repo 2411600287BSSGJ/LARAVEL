@@ -9,7 +9,6 @@ use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class ProductSeeder extends Seeder
 {
@@ -18,14 +17,14 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Create or ensure categories exist
+        // 1. Gym Equipment Categories
         $categoriesData = [
-            'Lumber' => 'Dimensional lumber, sheet goods, studs, and treated framing wood.',
-            'Hardware' => 'Fasteners, screws, bolts, anchors, hinges, and builder hardware.',
-            'Tools' => 'Hand tools, power tools, measuring devices, and job site accessories.',
-            'Electrical' => 'Wiring, circuit switches, boxes, outlets, and conduit supplies.',
-            'Plumbing' => 'Pipes, brass valves, fittings, primers, and drainage supplies.',
-            'Paint' => 'Interior and exterior paints, primers, brushes, rollers, and sealants.',
+            'Free Weights' => 'Dumbbells, barbells, bumper plates, kettlebells, and collars.',
+            'Cardio Equipment' => 'Treadmills, rowers, air bikes, ellipticals, and stair climbers.',
+            'Strength Machines' => 'Cable crossovers, leg presses, smith machines, and selectorized equipment.',
+            'Fitness Accessories' => 'Lifting belts, resistance bands, yoga mats, gym chalk, and wrist wraps.',
+            'Supplements & Nutrition' => 'Whey protein, creatine monohydrate, pre-workouts, and shakers.',
+            'Recovery & Mobility' => 'Massage guns, foam rollers, compression bands, and mobility balls.',
         ];
 
         $categoryMap = [];
@@ -36,15 +35,12 @@ class ProductSeeder extends Seeder
             );
         }
 
-        // 2. Create or ensure suppliers exist
+        // 2. Gym Suppliers
         $suppliersData = [
-            'Pacific Timber Co.' => ['email' => 'sales@pacifictimber.com', 'phone' => '(555) 234-5678', 'address' => '100 Forest Way, Portland, OR'],
-            'Fastener Supply Direct' => ['email' => 'orders@fastenersupply.com', 'phone' => '(555) 345-6789', 'address' => '450 Industrial Parkway, Cleveland, OH'],
-            'Builders Hardware Corp' => ['email' => 'support@buildershardware.com', 'phone' => '(555) 456-7890', 'address' => '820 Commerce Blvd, Chicago, IL'],
-            'Apex Tool Group' => ['email' => 'rep@apextools.com', 'phone' => '(555) 567-8901', 'address' => '910 Precision Lane, Milwaukee, WI'],
-            'VoltEdge Electrical' => ['email' => 'sales@voltedge.com', 'phone' => '(555) 678-9012', 'address' => '330 Circuit Drive, Austin, TX'],
-            'HydroFlow Plumbing' => ['email' => 'info@hydroflow.com', 'phone' => '(555) 789-0123', 'address' => '715 Riverview Ave, Charlotte, NC'],
-            'Spectrum Coatings' => ['email' => 'colors@spectrumcoatings.com', 'phone' => '(555) 890-1234', 'address' => '220 Colorway St, Atlanta, GA'],
+            'Strength Supply Direct' => ['email' => 'sales@strengthsupply.com', 'phone' => '(555) 101-2020', 'address' => '500 Ironworks Way, Columbus, OH'],
+            'Commercial Gym Outfitters' => ['email' => 'orders@gymoutfitters.com', 'phone' => '(555) 202-3030', 'address' => '1200 Fitness Blvd, Chicago, IL'],
+            'Titan Fitness Depot' => ['email' => 'titan@fitnessdepot.com', 'phone' => '(555) 303-4040', 'address' => '840 Barbell Lane, Austin, TX'],
+            'Global Nutrition Labs' => ['email' => 'distro@globalnutrition.com', 'phone' => '(555) 404-5050', 'address' => '310 Protein Way, Salt Lake City, UT'],
         ];
 
         $supplierMap = [];
@@ -55,228 +51,261 @@ class ProductSeeder extends Seeder
                     'email' => $info['email'],
                     'phone' => $info['phone'],
                     'address' => $info['address'],
-                    'lead_time_days' => 5,
+                    'lead_time_days' => 4,
                 ]
             );
         }
 
-        // 3. Create Brands
-        $brandsData = ['TimberCraft', 'GripTite', 'Stanley Black', 'DeWalt Pro', 'Southwire', 'SharkBite', 'Behr Premium'];
+        // 3. Gym Equipment Brands
+        $brandsData = ['Rogue Fitness', 'Eleiko', 'Hammer Strength', 'Life Fitness', 'Concept2', 'Optimum Nutrition', 'Therabody'];
         $brandMap = [];
         foreach ($brandsData as $bName) {
             $brandMap[$bName] = Brand::firstOrCreate(['name' => $bName]);
         }
 
-        // 4. Sample Products: At least 18 items across all 6 categories, with varied stock scenarios
+        // 4. Sample Gym Products across all 6 categories (Healthy, Low Stock, Out of Stock)
         $products = [
-            // Lumber
+            // Free Weights
             [
-                'name' => '2x4x8 Kiln-Dried Douglas Fir Stud',
-                'sku' => 'LUM-DF-248',
-                'category' => 'Lumber',
-                'brand' => 'TimberCraft',
-                'supplier' => 'Pacific Timber Co.',
-                'quantity' => 150,
-                'reorder_level' => 30,
-                'unit_price' => 6.98,
-                'description' => 'Premium grade kiln-dried structural lumber stud suitable for framing and general construction.',
+                'name' => 'Rubber Hex Dumbbell Set (5 - 50 lbs)',
+                'sku' => 'GYM-DB-550',
+                'category' => 'Free Weights',
+                'brand' => 'Rogue Fitness',
+                'supplier' => 'Strength Supply Direct',
+                'quantity' => 12,
+                'reorder_level' => 3,
+                'unit_price' => 850.00,
+                'description' => 'Heavy duty commercial rubber hex dumbbells with knurled ergonomic chrome handles.',
             ],
             [
-                'name' => '3/4-in x 4-ft x 8-ft CDX Plywood Sheet',
-                'sku' => 'LUM-PLY-348',
-                'category' => 'Lumber',
-                'brand' => 'TimberCraft',
-                'supplier' => 'Pacific Timber Co.',
-                'quantity' => 8, // LOW STOCK (<= 15)
-                'reorder_level' => 15,
-                'unit_price' => 38.50,
-                'description' => 'Exterior grade sheathing plywood ideal for subfloors, wall sheathing, and roof decking.',
+                'name' => 'Olympic Cast Iron Bumper Plates (45 lb Pair)',
+                'sku' => 'GYM-PLT-45',
+                'category' => 'Free Weights',
+                'brand' => 'Eleiko',
+                'supplier' => 'Strength Supply Direct',
+                'quantity' => 4, // LOW STOCK (<= 6)
+                'reorder_level' => 6,
+                'unit_price' => 195.00,
+                'description' => 'IWF standard high-density virgin rubber bumper plates with stainless steel hub inserts.',
             ],
             [
-                'name' => '1x6x8 Clear Pine Finish Board',
-                'sku' => 'LUM-PN-168',
-                'category' => 'Lumber',
-                'brand' => 'TimberCraft',
-                'supplier' => 'Pacific Timber Co.',
+                'name' => '20kg Olympic Cerakote Barbell (Men\'s 28mm)',
+                'sku' => 'GYM-BAR-20K',
+                'category' => 'Free Weights',
+                'brand' => 'Rogue Fitness',
+                'supplier' => 'Strength Supply Direct',
                 'quantity' => 0, // OUT OF STOCK
-                'reorder_level' => 10,
-                'unit_price' => 14.25,
-                'description' => 'Fine grain smooth clear pine board designed for furniture, trim, and decorative shelving.',
-            ],
-
-            // Hardware
-            [
-                'name' => '3-in #10 Wood Construction Screws 100pk',
-                'sku' => 'HDW-SCR-310',
-                'category' => 'Hardware',
-                'brand' => 'GripTite',
-                'supplier' => 'Fastener Supply Direct',
-                'quantity' => 95,
-                'reorder_level' => 20,
-                'unit_price' => 14.99,
-                'description' => 'Heavy duty exterior coated wood screws with star drive bit included.',
-            ],
-            [
-                'name' => '1/2-in x 3-in Zinc Carriage Bolts 25pk',
-                'sku' => 'HDW-BLT-123',
-                'category' => 'Hardware',
-                'brand' => 'GripTite',
-                'supplier' => 'Fastener Supply Direct',
-                'quantity' => 6, // LOW STOCK (<= 12)
-                'reorder_level' => 12,
-                'unit_price' => 18.25,
-                'description' => 'Corrosion-resistant zinc plated carriage bolts for timber connections and deck building.',
-            ],
-            [
-                'name' => '3-1/2-in Satin Nickel Door Hinges 3pk',
-                'sku' => 'HDW-HNG-35S',
-                'category' => 'Hardware',
-                'brand' => 'GripTite',
-                'supplier' => 'Builders Hardware Corp',
-                'quantity' => 42,
-                'reorder_level' => 15,
-                'unit_price' => 11.50,
-                'description' => 'Smooth operating residential door hinges complete with mounting screws.',
-            ],
-
-            // Tools
-            [
-                'name' => 'Heavy Duty 20oz Steel Rip Claw Hammer',
-                'sku' => 'TLS-HMR-20Z',
-                'category' => 'Tools',
-                'brand' => 'Apex Tool Group',
-                'supplier' => 'Apex Tool Group',
-                'quantity' => 28,
-                'reorder_level' => 8,
-                'unit_price' => 26.95,
-                'description' => 'One-piece forged steel hammer with shock reduction anti-vibration grip.',
-            ],
-            [
-                'name' => '25-ft Magnetic Measuring Tape',
-                'sku' => 'TLS-TAP-25M',
-                'category' => 'Tools',
-                'brand' => 'Apex Tool Group',
-                'supplier' => 'Apex Tool Group',
-                'quantity' => 40,
-                'reorder_level' => 10,
-                'unit_price' => 19.99,
-                'description' => 'Durable dual-sided printed measuring tape with 14ft standout and magnetic hook.',
-            ],
-            [
-                'name' => '20V Max Brushless Cordless Drill Kit',
-                'sku' => 'TLS-DRL-20V',
-                'category' => 'Tools',
-                'brand' => 'DeWalt Pro',
-                'supplier' => 'Apex Tool Group',
-                'quantity' => 3, // LOW STOCK (<= 5)
                 'reorder_level' => 5,
-                'unit_price' => 139.00,
-                'description' => 'Compact brushless drill with 2 lithium-ion batteries, charger, and contractor carrying bag.',
+                'unit_price' => 315.00,
+                'description' => '190,000 PSI tensile strength steel bar with advanced Cerakote ceramic finish for corrosion resistance.',
+            ],
+            [
+                'name' => 'Cast Iron Competition Kettlebell (24kg / 53lb)',
+                'sku' => 'GYM-KB-24K',
+                'category' => 'Free Weights',
+                'brand' => 'Rogue Fitness',
+                'supplier' => 'Titan Fitness Depot',
+                'quantity' => 18,
+                'reorder_level' => 5,
+                'unit_price' => 89.00,
+                'description' => 'Single-piece cast iron competition kettlebell with uniform exterior diameter and color-coded handle.',
             ],
 
-            // Electrical
+            // Cardio Equipment
             [
-                'name' => '14/2 NM-B Romex Electrical Cable 250ft',
-                'sku' => 'ELE-ROM-142',
-                'category' => 'Electrical',
-                'brand' => 'Southwire',
-                'supplier' => 'VoltEdge Electrical',
+                'name' => 'Commercial Curved Manual Treadmill',
+                'sku' => 'GYM-TRD-CV1',
+                'category' => 'Cardio Equipment',
+                'brand' => 'Life Fitness',
+                'supplier' => 'Commercial Gym Outfitters',
+                'quantity' => 5,
+                'reorder_level' => 2,
+                'unit_price' => 3499.00,
+                'description' => 'Self-powered curved treadmill that simulates outdoor running and delivers high metabolic burn without electricity.',
+            ],
+            [
+                'name' => 'Concept2 Model D Indoor Rower (PM5 Monitor)',
+                'sku' => 'GYM-ROW-C2D',
+                'category' => 'Cardio Equipment',
+                'brand' => 'Concept2',
+                'supplier' => 'Commercial Gym Outfitters',
+                'quantity' => 2, // LOW STOCK (<= 3)
+                'reorder_level' => 3,
+                'unit_price' => 990.00,
+                'description' => 'The world standard in rowing machines featuring flywheel damper control and Performance Monitor 5.',
+            ],
+            [
+                'name' => 'Heavy Duty Commercial Air Bike',
+                'sku' => 'GYM-BIK-AIR',
+                'category' => 'Cardio Equipment',
+                'brand' => 'Rogue Fitness',
+                'supplier' => 'Commercial Gym Outfitters',
+                'quantity' => 8,
+                'reorder_level' => 2,
+                'unit_price' => 799.00,
+                'description' => 'Belt-driven steel fan air resistance bike designed for high-intensity interval conditioning.',
+            ],
+
+            // Strength Machines
+            [
+                'name' => 'Dual Adjustable Pulley Functional Trainer',
+                'sku' => 'GYM-CBL-DAP',
+                'category' => 'Strength Machines',
+                'brand' => 'Hammer Strength',
+                'supplier' => 'Commercial Gym Outfitters',
+                'quantity' => 3,
+                'reorder_level' => 1,
+                'unit_price' => 4200.00,
+                'description' => 'Commercial dual weight stack cable machine with 360-degree rotating pulleys and integrated pull-up bars.',
+            ],
+            [
+                'name' => 'Commercial 45-Degree Incline Leg Press',
+                'sku' => 'GYM-LEG-45P',
+                'category' => 'Strength Machines',
+                'brand' => 'Hammer Strength',
+                'supplier' => 'Commercial Gym Outfitters',
+                'quantity' => 2,
+                'reorder_level' => 1,
+                'unit_price' => 2850.00,
+                'description' => 'Heavy duty plate-loaded 45-degree linear leg press with oversized footplate and safety lockouts.',
+            ],
+            [
+                'name' => 'Adjustable Flat / Incline / Decline Utility Bench',
+                'sku' => 'GYM-BNC-FID',
+                'category' => 'Strength Machines',
+                'brand' => 'Rogue Fitness',
+                'supplier' => 'Titan Fitness Depot',
+                'quantity' => 1, // LOW STOCK (<= 4)
+                'reorder_level' => 4,
+                'unit_price' => 445.00,
+                'description' => '11-gauge steel adjustable workout bench with non-slip vinyl upholstery and wheels for portability.',
+            ],
+            [
+                'name' => 'Counterbalanced Commercial Smith Machine',
+                'sku' => 'GYM-SMT-001',
+                'category' => 'Strength Machines',
+                'brand' => 'Life Fitness',
+                'supplier' => 'Commercial Gym Outfitters',
+                'quantity' => 0, // OUT OF STOCK
+                'reorder_level' => 2,
+                'unit_price' => 3600.00,
+                'description' => 'Smooth linear bearing guided barbell rack with counterbalanced 15lb starting resistance.',
+            ],
+
+            // Fitness Accessories
+            [
+                'name' => 'High-Density Non-Slip Yoga & Stretch Mat (6mm)',
+                'sku' => 'GYM-MAT-6MM',
+                'category' => 'Fitness Accessories',
+                'brand' => 'Rogue Fitness',
+                'supplier' => 'Titan Fitness Depot',
+                'quantity' => 45,
+                'reorder_level' => 15,
+                'unit_price' => 38.00,
+                'description' => 'Commercial grade closed-cell vinyl foam mat resistant to sweat, tears, and heavy floor work.',
+            ],
+            [
+                'name' => 'Latex Resistance Loop Exercise Bands (5-Pack)',
+                'sku' => 'GYM-BND-5PK',
+                'category' => 'Fitness Accessories',
+                'brand' => 'Rogue Fitness',
+                'supplier' => 'Titan Fitness Depot',
+                'quantity' => 60,
+                'reorder_level' => 20,
+                'unit_price' => 24.50,
+                'description' => 'Tiered resistance mini bands for glute activation, warm-ups, and mobility training.',
+            ],
+            [
+                'name' => 'Leather Lever Weightlifting Belt (10mm Thick)',
+                'sku' => 'GYM-BLT-10L',
+                'category' => 'Fitness Accessories',
+                'brand' => 'Eleiko',
+                'supplier' => 'Titan Fitness Depot',
+                'quantity' => 3, // LOW STOCK (<= 6)
+                'reorder_level' => 6,
+                'unit_price' => 125.00,
+                'description' => 'IPF approved genuine steerhide leather powerlifting belt with quick-release steel lever clasp.',
+            ],
+            [
+                'name' => 'Gym Chalk Block Box (8 x 2oz Magnesium Carbonate)',
+                'sku' => 'GYM-CHK-8PK',
+                'category' => 'Fitness Accessories',
+                'brand' => 'Rogue Fitness',
+                'supplier' => 'Titan Fitness Depot',
+                'quantity' => 30,
+                'reorder_level' => 10,
+                'unit_price' => 18.00,
+                'description' => 'Pure magnesium carbonate chalk blocks for dry grip on heavy deadlifts, pull-ups, and gymnastics.',
+            ],
+
+            // Supplements & Nutrition
+            [
+                'name' => '100% Whey Gold Standard Protein Powder (5 lbs)',
+                'sku' => 'GYM-PRO-5CH',
+                'category' => 'Supplements & Nutrition',
+                'brand' => 'Optimum Nutrition',
+                'supplier' => 'Global Nutrition Labs',
+                'quantity' => 35,
+                'reorder_level' => 10,
+                'unit_price' => 74.99,
+                'description' => 'Double rich chocolate whey protein isolate powder delivering 24g protein and 5.5g BCAAs per scoop.',
+            ],
+            [
+                'name' => 'Micronized Creatine Monohydrate (600g / 120 Serv)',
+                'sku' => 'GYM-CRE-600',
+                'category' => 'Supplements & Nutrition',
+                'brand' => 'Optimum Nutrition',
+                'supplier' => 'Global Nutrition Labs',
+                'quantity' => 4, // LOW STOCK (<= 8)
+                'reorder_level' => 8,
+                'unit_price' => 34.50,
+                'description' => '100% pure micronized creatine powder supporting muscle strength, explosive power, and recovery.',
+            ],
+            [
+                'name' => 'High-Performance Pre-Workout Energy Formula',
+                'sku' => 'GYM-PWO-30S',
+                'category' => 'Supplements & Nutrition',
+                'brand' => 'Optimum Nutrition',
+                'supplier' => 'Global Nutrition Labs',
                 'quantity' => 22,
                 'reorder_level' => 8,
-                'unit_price' => 115.00,
-                'description' => 'UL listed non-metallic sheathed copper electrical wire for indoor branch circuits.',
-            ],
-            [
-                'name' => '15 Amp Single-Pole Decorator Light Switch',
-                'sku' => 'ELE-SWT-15A',
-                'category' => 'Electrical',
-                'brand' => 'Southwire',
-                'supplier' => 'VoltEdge Electrical',
-                'quantity' => 120,
-                'reorder_level' => 25,
-                'unit_price' => 3.49,
-                'description' => 'Modern smooth paddle rocker switch rated for residential 120V lighting circuits.',
-            ],
-            [
-                'name' => '15A Tamper-Resistant Duplex Outlet 10pk',
-                'sku' => 'ELE-OUT-15T',
-                'category' => 'Electrical',
-                'brand' => 'Southwire',
-                'supplier' => 'VoltEdge Electrical',
-                'quantity' => 0, // OUT OF STOCK
-                'reorder_level' => 15,
-                'unit_price' => 24.50,
-                'description' => 'Safety shutter tamper-resistant wall electrical outlets meeting modern building codes.',
+                'unit_price' => 39.99,
+                'description' => 'Formulated with caffeine, beta-alanine, and citrulline for intense energy, endurance, and pump.',
             ],
 
-            // Plumbing
+            // Recovery & Mobility
             [
-                'name' => '3/4-in x 10-ft Schedule 40 PVC Pipe',
-                'sku' => 'PLM-PVC-3410',
-                'category' => 'Plumbing',
-                'brand' => 'SharkBite',
-                'supplier' => 'HydroFlow Plumbing',
-                'quantity' => 75,
-                'reorder_level' => 20,
-                'unit_price' => 8.75,
-                'description' => 'Rigid PVC pressure pipe suitable for potable water distribution and irrigation.',
+                'name' => 'Deep Tissue Percussive Massage Gun (Theragun Pro)',
+                'sku' => 'GYM-REC-GUN',
+                'category' => 'Recovery & Mobility',
+                'brand' => 'Therabody',
+                'supplier' => 'Commercial Gym Outfitters',
+                'quantity' => 6,
+                'reorder_level' => 2,
+                'unit_price' => 399.00,
+                'description' => 'Professional percussive therapy device with 16mm amplitude, 6 attachment heads, and Bluetooth app control.',
             ],
             [
-                'name' => '1/2-in Push-to-Connect Brass Ball Valve',
-                'sku' => 'PLM-VLV-12B',
-                'category' => 'Plumbing',
-                'brand' => 'SharkBite',
-                'supplier' => 'HydroFlow Plumbing',
-                'quantity' => 4, // LOW STOCK (<= 10)
-                'reorder_level' => 10,
-                'unit_price' => 16.80,
-                'description' => 'Full port brass shut-off valve compatible with copper, PEX, and CPVC piping.',
+                'name' => 'Grid Trigger-Point Deep Tissue Foam Roller',
+                'sku' => 'GYM-FLR-13G',
+                'category' => 'Recovery & Mobility',
+                'brand' => 'Therabody',
+                'supplier' => 'Titan Fitness Depot',
+                'quantity' => 25,
+                'reorder_level' => 8,
+                'unit_price' => 36.95,
+                'description' => 'Multi-density hollow core foam roller for myofascial release, tight muscle knots, and flexibility.',
             ],
             [
-                'name' => 'Multi-Purpose PVC Primer and Cement Pack',
-                'sku' => 'PLM-GLU-8OZ',
-                'category' => 'Plumbing',
-                'brand' => 'SharkBite',
-                'supplier' => 'HydroFlow Plumbing',
-                'quantity' => 35,
-                'reorder_level' => 12,
-                'unit_price' => 13.20,
-                'description' => 'Dual pack purple primer and medium clear solvent cement for PVC pipe bonding.',
-            ],
-
-            // Paint
-            [
-                'name' => 'Premium Acrylic Interior Latex Flat Paint (1 Gal)',
-                'sku' => 'PNT-INT-WHT1',
-                'category' => 'Paint',
-                'brand' => 'Behr Premium',
-                'supplier' => 'Spectrum Coatings',
-                'quantity' => 38,
-                'reorder_level' => 10,
-                'unit_price' => 42.99,
-                'description' => 'One-coat hide paint and primer in one, pure white finish with high scrub resistance.',
-            ],
-            [
-                'name' => 'Heavy Duty 9-in Paint Roller Kit (5-Piece)',
-                'sku' => 'PNT-ROL-9KT',
-                'category' => 'Paint',
-                'brand' => 'Behr Premium',
-                'supplier' => 'Spectrum Coatings',
-                'quantity' => 50,
-                'reorder_level' => 15,
-                'unit_price' => 17.50,
-                'description' => 'Complete painting kit including metal tray, roller frame, 2 microfiber covers, and 2-in angle brush.',
-            ],
-            [
-                'name' => '2-in Professional Angle Sash Paint Brush',
-                'sku' => 'PNT-BRS-2AS',
-                'category' => 'Paint',
-                'brand' => 'Behr Premium',
-                'supplier' => 'Spectrum Coatings',
-                'quantity' => 5, // LOW STOCK (<= 10)
-                'reorder_level' => 10,
-                'unit_price' => 11.25,
-                'description' => 'Chiseled synthetic filament brush engineered for sharp trim cutting and clean edging.',
+                'name' => 'Floss Compression Mobility Recovery Bands (Pair)',
+                'sku' => 'GYM-REC-FLS',
+                'category' => 'Recovery & Mobility',
+                'brand' => 'Rogue Fitness',
+                'supplier' => 'Titan Fitness Depot',
+                'quantity' => 2, // LOW STOCK (<= 5)
+                'reorder_level' => 5,
+                'unit_price' => 22.00,
+                'description' => 'Natural latex compression wrap bands used for blood flow restriction, joint flossing, and swelling reduction.',
             ],
         ];
 
@@ -317,7 +346,7 @@ class ProductSeeder extends Seeder
                             'quantity' => $p['quantity'],
                             'unit_price' => $p['unit_price'],
                             'reference' => 'INIT-' . $p['sku'],
-                            'notes' => 'Initial inventory seed count',
+                            'notes' => 'Initial gym inventory count',
                         ]
                     );
                 });

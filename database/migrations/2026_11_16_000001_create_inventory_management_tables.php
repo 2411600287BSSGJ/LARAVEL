@@ -35,10 +35,15 @@ return new class extends Migration
             $table->string('contact_person')->nullable();
             $table->string('email')->nullable()->unique();
             $table->string('phone')->nullable();
-            $table->string('address')->nullable();
-            $table->unsignedInteger('lead_time_days')->default(0);
+            $table->text('address')->nullable();
+            $table->string('payment_terms')->default('Net 30');
+            $table->unsignedInteger('lead_time_days')->default(7);
+            $table->decimal('minimum_order_amount', 12, 2)->default(0);
+            $table->boolean('active')->default(true);
             $table->softDeletes();
             $table->timestamps();
+            $table->index('active');
+            $table->index('lead_time_days');
         });
 
         Schema::create('products', function (Blueprint $table) {

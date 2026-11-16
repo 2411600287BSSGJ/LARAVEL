@@ -6,7 +6,7 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
             <p class="text-uppercase text-muted small fw-bold mb-1">
-                <i class="bi bi-box-seam text-primary me-1"></i>Product Specification
+                <i class="bi bi-activity text-danger me-1"></i>Equipment Specification
             </p>
             <h1 class="h2 fw-bold mb-1">{{ $product->name }}</h1>
             <p class="text-muted mb-0 font-monospace">SKU: {{ $product->sku }}</p>
@@ -66,7 +66,7 @@
                 <div class="card-body p-3">
                     <small class="text-muted text-uppercase fw-semibold d-block">Unit Price</small>
                     <div class="d-flex align-items-baseline gap-2 mt-1">
-                        <span class="fs-2 fw-bold text-dark">${{ number_format((float) $product->unit_price, 2) }}</span>
+                        <span class="fs-2 fw-bold text-dark">₱{{ number_format((float) $product->unit_price, 2) }}</span>
                     </div>
                     <small class="text-muted mt-2 d-block">Catalog price</small>
                 </div>
@@ -78,7 +78,7 @@
                 <div class="card-body p-3">
                     <small class="text-muted text-uppercase fw-semibold d-block">Total Inventory Value</small>
                     <div class="d-flex align-items-baseline gap-2 mt-1">
-                        <span class="fs-2 fw-bold text-success">${{ number_format($product->total_value, 2) }}</span>
+                        <span class="fs-2 fw-bold text-success">₱{{ number_format($product->total_value, 2) }}</span>
                     </div>
                     <small class="text-muted mt-2 d-block">Qty × Unit Price</small>
                 </div>

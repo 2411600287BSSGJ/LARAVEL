@@ -22,12 +22,13 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->post('/login', [
-            'email' => $user->email,
+            'email'    => $user->email,
             'password' => 'password',
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        // With OTP enabled, login redirects to otp/verify (user is NOT yet authenticated)
+        $this->assertGuest();
+        $response->assertRedirect(route('otp.show'));
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

@@ -186,9 +186,11 @@ body {
 /* ----- Sidebar (decorative only) ----- */
 .sidebar-card {
     border-radius: var(--radius);
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.45) !important;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.10);
     position: sticky;
     top: 88px;
 }
@@ -223,12 +225,12 @@ body {
 
 /* ----- Panels (glass) ----- */
 .panel {
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid #e8f0ed;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.45);
     border-radius: 12px;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.10);
     padding: 1.25rem;
 }
 
@@ -273,12 +275,12 @@ body {
 
 /* ----- Metric cards (glass) ----- */
 .metric-card {
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid #e8f0ed;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.45);
     border-radius: 12px;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.10);
     min-height: 146px;
     padding: 1.25rem;
     display: flex;
@@ -465,7 +467,9 @@ body {
     top: 0;
     z-index: 1;
     background-color:
-        rgba(255, 255, 255, 0.95);
+        rgba(255, 255, 255, 0.70);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     box-shadow: 0 1px 0 #dee2e6;
 }
 

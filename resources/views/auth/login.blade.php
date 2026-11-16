@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Hardware Inventory System</title>
+    <title>Login - Gym Inventory System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
@@ -16,10 +16,10 @@
                 <div class="card shadow-lg border-0 rounded-4 login-card">
                     <div class="card-header bg-transparent border-0 text-center pt-4 pb-2">
                         <div class="stat-icon bg-danger text-white rounded-circle mx-auto mb-3 shadow" style="width: 64px; height: 64px; font-size: 1.8rem;">
-                            <i class="bi bi-tools"></i>
+                            <i class="bi bi-activity"></i>
                         </div>
-                        <h3 class="fw-bold text-dark mb-1">Hardware Inventory</h3>
-                        <p class="text-muted small">Sign in to access your stock management dashboard</p>
+                        <h3 class="fw-bold text-dark mb-1">Gym Inventory</h3>
+                        <p class="text-muted small">Sign in to access your gym stock management dashboard</p>
                     </div>
 
                     <div class="card-body px-4 py-3">
@@ -42,7 +42,7 @@
                                        class="form-control form-control-lg fs-6 @error('email') is-invalid @enderror"
                                        id="email"
                                        name="email"
-                                       value="{{ old('email', 'admin@hardware.com') }}"
+                                       value="{{ old('email', 'admin@gym.com') }}"
                                        required
                                        autofocus
                                        autocomplete="username">
@@ -95,7 +95,7 @@
                             <!-- Test Credentials Box -->
                             <div class="p-2 bg-light border rounded text-center small text-muted mb-2">
                                 <strong>Default Test Account:</strong><br>
-                                <code>admin@hardware.com</code> / <code>password</code>
+                                <code>admin@gym.com</code> / <code>password</code>
                             </div>
                         </form>
                     </div>

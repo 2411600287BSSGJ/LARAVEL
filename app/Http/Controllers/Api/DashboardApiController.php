@@ -31,7 +31,7 @@ class DashboardApiController extends Controller
             'low_stock_count' => $lowStockCount,
             'out_of_stock_count' => $outOfStockCount,
             'total_inventory_value' => $inventoryValue,
-            'formatted_inventory_value' => '$' . number_format($inventoryValue, 2),
+            'formatted_inventory_value' => '₱' . number_format($inventoryValue, 2),
             'recent_transactions_count' => $recentTransactionsCount,
             'last_updated' => now()->format('M d, Y h:i:s A'),
         ]);
@@ -57,7 +57,7 @@ class DashboardApiController extends Controller
                     'quantity' => $p->quantity,
                     'reorder_level' => $p->reorder_level,
                     'unit_price' => (float) $p->unit_price,
-                    'formatted_price' => '$' . number_format($p->unit_price, 2),
+                    'formatted_price' => '₱' . number_format($p->unit_price, 2),
                     'status' => $p->stock_status,
                     'status_color' => $p->stock_status_color,
                     'show_url' => route('products.show', $p->id),

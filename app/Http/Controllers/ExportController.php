@@ -24,9 +24,11 @@ class ExportController extends Controller
         'users' => [User::class, ['id', 'name', 'email', 'email_verified_at', 'role', 'deleted_at', 'created_at', 'updated_at']],
     ];
 
+    // Generic CSV export for core tables
     public function download(string $table): Response|StreamedResponse
     {
         abort_unless(isset(self::EXPORTS[$table]), 404);
+        // Authorization for sensitive data
         if ($table === 'users') {
             $this->authorize('viewAny', User::class);
         }
@@ -34,29 +36,52 @@ class ExportController extends Controller
         [$model, $columns] = self::EXPORTS[$table];
         $filename = $table.'-'.now()->format('Ymd-His').'.csv';
 
-        return response()->streamDownload(function () use ($model, $columns): void {
+        return response()->streamDownload(function () use ($model, $columns) {
             $output = fopen('php://output', 'w');
-            fputcsv($output, $columns, ',', '"', '');
-
-            $model::withTrashed()->orderBy('id')->chunk(500, function ($records) use ($output, $columns): void {
+            fputcsv($output, $columns, ',', "\"");
+            $model::withTrashed()->orderBy('id')->chunk(500, function ($records) use ($output, $columns) {
                 foreach ($records as $record) {
                     $row = [];
                     foreach ($columns as $column) {
                         $value = $record->getAttribute($column);
                         $value = is_scalar($value) ? (string) $value : '';
-
                         if ($value !== '' && preg_match('/^[=+\-@\t\r]/', $value)) {
                             $value = "'".$value;
                         }
-
                         $row[] = $value;
                     }
-
-                    fputcsv($output, $row, ',', '"', '');
+                    fputcsv($output, $row, ',', "\"");
                 }
             });
-
             fclose($output);
         }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    // ---------- PDF Exports ----------
+    public function exportProductsPdf()
+    {
+        return (new \App\Exports\ProductsPdfExport)->download();
+    }
+
+    public function exportPurchaseOrdersPdf()
+    {
+        // Using a simple view – you can create a dedicated view similar to exports.products
+        $orders = \App\Models\PurchaseOrder::all();
+        $pdf = \PDF::loadView('exports.purchase_orders', compact('orders'));
+        return $pdf->download('purchase_orders.pdf');
+    }
+
+    public function exportTransactionsPdf()
+    {
+        $transactions = \App\Models\InventoryTransaction::all();
+        $pdf = \PDF::loadView('exports.transactions', compact('transactions'));
+        return $pdf->download('transactions.pdf');
+    }
+
+    public function exportSuppliersPdf()
+    {
+        $suppliers = \App\Models\Supplier::all();
+        $pdf = \PDF::loadView('exports.suppliers', compact('suppliers'));
+        return $pdf->download('suppliers.pdf');
     }
 }

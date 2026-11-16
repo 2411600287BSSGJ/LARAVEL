@@ -1,5 +1,5 @@
 /**
- * Hardware Inventory System - Custom Theme & Overrides
+ * Gym Inventory System - Custom Theme & Overrides
  * Connecting to Laboratory Exercise 4 Design System
  */
 :root {
@@ -21,9 +21,16 @@
     --danger: #e74c3c;
     --info: #2980b9;
 
-    --border-radius: 0.5rem;
-    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    --hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --border-radius: 0.75rem;
+    --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
+    --hover-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+
+    /* Glass effect variables */
+    --glass-bg: rgba(255, 255, 255, 0.55);
+    --glass-bg-hover: rgba(255, 255, 255, 0.70);
+    --glass-border: rgba(255, 255, 255, 0.45);
+    --glass-blur: blur(14px);
+    --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.10);
 }
 
 body.dashboard-body {
@@ -32,7 +39,219 @@ body.dashboard-body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* Navbar */
+/* ============================================
+   GLOBAL GLASSMORPHISM — all Bootstrap cards
+   ============================================ */
+
+/* Every .card on the dashboard becomes glass */
+.dashboard-body .card,
+.dashboard-body .form-card,
+.dashboard-body .card-stat {
+    background: var(--glass-bg) !important;
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--glass-shadow) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.dashboard-body .card:hover,
+.dashboard-body .card-stat:hover {
+    background: var(--glass-bg-hover) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--hover-shadow) !important;
+}
+
+/* Card headers — slightly more opaque for readability */
+.dashboard-body .card-header {
+    background: rgba(255, 255, 255, 0.35) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+}
+
+/* Card footers */
+.dashboard-body .card-footer {
+    background: rgba(255, 255, 255, 0.30) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Card body — keep transparent so glass shows through */
+.dashboard-body .card-body {
+    background: transparent !important;
+}
+
+/* ============================================
+   TABLE WRAPPERS — glass
+   ============================================ */
+.dashboard-body .table-responsive,
+.dashboard-body .table-custom {
+    background: var(--glass-bg) !important;
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius);
+    box-shadow: var(--glass-shadow);
+    overflow: hidden;
+}
+
+/* Table itself — transparent so wrapper glass shows */
+.dashboard-body .table,
+.dashboard-body .table-custom table {
+    background: transparent !important;
+    --bs-table-bg: transparent;
+    --bs-table-striped-bg: rgba(255, 255, 255, 0.18);
+    --bs-table-hover-bg: rgba(255, 255, 255, 0.30);
+}
+
+.dashboard-body .table thead th,
+.dashboard-body .table-custom thead th {
+    background: rgba(255, 255, 255, 0.35) !important;
+    color: #475569;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+    padding: 0.85rem 1rem;
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.dashboard-body .table tbody td,
+.dashboard-body .table-custom tbody td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.dashboard-body .table tbody tr:hover td {
+    background: rgba(255, 255, 255, 0.28) !important;
+}
+
+/* ============================================
+   ALERTS — semi-glass tint
+   ============================================ */
+.dashboard-body .alert {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 0.6rem;
+}
+
+.dashboard-body .alert-success {
+    background: rgba(212, 237, 218, 0.72) !important;
+    border-color: rgba(195, 230, 203, 0.60) !important;
+}
+
+.dashboard-body .alert-danger {
+    background: rgba(248, 215, 218, 0.72) !important;
+    border-color: rgba(245, 198, 203, 0.60) !important;
+}
+
+.dashboard-body .alert-info {
+    background: rgba(209, 236, 241, 0.72) !important;
+    border-color: rgba(190, 229, 235, 0.60) !important;
+}
+
+.dashboard-body .alert-warning {
+    background: rgba(255, 243, 205, 0.72) !important;
+    border-color: rgba(255, 238, 186, 0.60) !important;
+}
+
+/* ============================================
+   MODALS — glass panel
+   ============================================ */
+.dashboard-body .modal-content {
+    background: rgba(255, 255, 255, 0.72) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25) !important;
+}
+
+.dashboard-body .modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4) !important;
+    background: rgba(255, 255, 255, 0.25) !important;
+}
+
+.dashboard-body .modal-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.4) !important;
+    background: rgba(255, 255, 255, 0.20) !important;
+}
+
+/* ============================================
+   DROPDOWN MENUS — glass
+   ============================================ */
+.dashboard-body .dropdown-menu {
+    background: rgba(255, 255, 255, 0.82) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    border-radius: 0.65rem !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14) !important;
+}
+
+.dashboard-body .dropdown-item:hover,
+.dashboard-body .dropdown-item:focus {
+    background: rgba(192, 57, 43, 0.10) !important;
+}
+
+/* ============================================
+   FORM INPUTS — frosted
+   ============================================ */
+.dashboard-body .form-control,
+.dashboard-body .form-select,
+.dashboard-body .input-group-text {
+    background: rgba(255, 255, 255, 0.60) !important;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.55) !important;
+    border-radius: 0.5rem;
+}
+
+.dashboard-body .form-control:focus,
+.dashboard-body .form-select:focus {
+    background: rgba(255, 255, 255, 0.82) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(192, 57, 43, 0.20) !important;
+}
+
+/* ============================================
+   LIST GROUPS — glass items
+   ============================================ */
+.dashboard-body .list-group-item {
+    background: rgba(255, 255, 255, 0.45) !important;
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.dashboard-body .list-group-item:hover,
+.dashboard-body .list-group-item-action:hover {
+    background: rgba(255, 255, 255, 0.65) !important;
+}
+
+/* ============================================
+   NOTIFICATION DROPDOWN overrides
+   ============================================ */
+.notification-menu {
+    width: 340px;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    transition: background-color 0.2s;
+    font-size: 0.875rem;
+    background: transparent !important;
+}
+
+.notification-item:hover {
+    background: rgba(255, 255, 255, 0.55) !important;
+}
+
+/* ============================================
+   NAVBAR
+   ============================================ */
 .navbar-custom {
     background: linear-gradient(135deg, var(--secondary) 0%, #1a252f 100%);
     box-shadow: 0 2px 10px rgba(0,0,0,0.15);
@@ -44,19 +263,9 @@ body.dashboard-body {
     color: #ffffff !important;
 }
 
-/* Cards */
-.card-stat {
-    border: none;
-    border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card-stat:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--hover-shadow);
-}
-
+/* ============================================
+   STAT ICON
+   ============================================ */
 .stat-icon {
     width: 50px;
     height: 50px;
@@ -67,7 +276,9 @@ body.dashboard-body {
     font-size: 1.5rem;
 }
 
-/* Pulse animation for AJAX polling updates */
+/* ============================================
+   PULSE ANIMATION
+   ============================================ */
 .stat-updated {
     animation: flashBg 1s ease-in-out;
 }
@@ -77,41 +288,50 @@ body.dashboard-body {
     100% { background-color: transparent; }
 }
 
-/* Stock status badges */
+/* ============================================
+   STOCK STATUS BADGES
+   ============================================ */
 .badge-stock-in {
-    background-color: #d4edda;
+    background-color: rgba(212, 237, 218, 0.80);
     color: #155724;
     font-weight: 600;
     padding: 0.4em 0.75em;
     border-radius: 50rem;
+    backdrop-filter: blur(4px);
 }
 
 .badge-stock-low {
-    background-color: #fff3cd;
+    background-color: rgba(255, 243, 205, 0.80);
     color: #856404;
     font-weight: 600;
     padding: 0.4em 0.75em;
     border-radius: 50rem;
+    backdrop-filter: blur(4px);
 }
 
 .badge-stock-out {
-    background-color: #f8d7da;
+    background-color: rgba(248, 215, 218, 0.80);
     color: #721c24;
     font-weight: 600;
     padding: 0.4em 0.75em;
     border-radius: 50rem;
+    backdrop-filter: blur(4px);
 }
 
-/* Sidebar navigation */
+/* ============================================
+   SIDEBAR — override style.css glass
+   ============================================ */
 .sidebar-card {
-    border: none;
-    border-radius: var(--border-radius);
-    background: #ffffff;
-    box-shadow: var(--card-shadow);
+    border: 1px solid var(--glass-border) !important;
+    border-radius: var(--border-radius) !important;
+    background: var(--glass-bg) !important;
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    box-shadow: var(--glass-shadow);
 }
 
 .sidebar-card .nav-link {
-    color: #555;
+    color: var(--text-main);
     font-weight: 500;
     padding: 0.65rem 1rem;
     border-radius: 8px;
@@ -119,7 +339,7 @@ body.dashboard-body {
 }
 
 .sidebar-card .nav-link:hover {
-    background-color: #f1f4f8;
+    background-color: rgba(255, 255, 255, 0.45);
     color: var(--primary);
 }
 
@@ -127,54 +347,12 @@ body.dashboard-body {
     background-color: var(--primary);
     color: #ffffff;
     font-weight: 600;
-    box-shadow: 0 4px 10px rgba(192, 57, 43, 0.25);
+    box-shadow: 0 4px 10px rgba(192, 57, 43, 0.30);
 }
 
-/* Tables */
-.table-custom {
-    background: #ffffff;
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    box-shadow: var(--card-shadow);
-}
-
-.table-custom thead th {
-    background-color: #f8fafc;
-    color: #475569;
-    font-weight: 600;
-    border-bottom: 2px solid #e2e8f0;
-    padding: 0.85rem 1rem;
-}
-
-.table-custom tbody td {
-    padding: 0.85rem 1rem;
-    vertical-align: middle;
-}
-
-/* Notification Dropdown */
-.notification-menu {
-    width: 340px;
-    max-height: 420px;
-    overflow-y: auto;
-}
-
-.notification-item {
-    transition: background-color 0.2s;
-    font-size: 0.875rem;
-}
-
-.notification-item:hover {
-    background-color: #f8f9fa;
-}
-
-/* Forms */
-.form-card {
-    border: none;
-    border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
-    background: #ffffff;
-}
-
+/* ============================================
+   BUTTONS
+   ============================================ */
 .btn-primary-custom {
     background-color: var(--primary);
     border-color: var(--primary);

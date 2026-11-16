@@ -17,6 +17,7 @@ class ProductController extends Controller
     public function index(Request $request): View
     {
         $this->authorize('viewAny', Product::class);
+        
         $products = Product::with(['brand', 'category', 'supplier'])
             ->filter($request->only(['search', 'brand_id', 'category_id', 'stock']))
             ->orderBy('name')
@@ -33,29 +34,39 @@ class ProductController extends Controller
     public function create(): View
     {
         $this->authorize('create', Product::class);
-
         return view('products.create', $this->formOptions());
     }
 
     public function store(Request $request, ReorderService $reorderService): RedirectResponse
     {
         $this->authorize('create', Product::class);
+        
         $product = Product::create($this->validateProduct($request));
         $reorderService->checkReorderPoint($product);
 
         return redirect()->route('products.index')->with('success', 'Product added.');
     }
 
+    public function show(Product $product): View
+    {
+        $this->authorize('view', $product);
+        $product->load(['brand', 'category', 'supplier']);
+        
+        $transactions = $product->transactions()->with('user')->latest()->paginate(10);
+
+        return view('products.show', compact('product', 'transactions'));
+    }
+
     public function edit(Product $product): View
     {
         $this->authorize('update', $product);
-
         return view('products.edit', $this->formOptions() + ['product' => $product]);
     }
 
     public function update(Request $request, Product $product, ReorderService $reorderService): RedirectResponse
     {
         $this->authorize('update', $product);
+        
         $product->update($this->validateProduct($request, $product));
         $reorderService->checkReorderPoint($product);
 

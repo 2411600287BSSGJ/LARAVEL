@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\InventoryTransaction;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
+use App\Models\Transaction;
 use Illuminate\View\View;
 
 class ReportController extends Controller
@@ -19,7 +19,7 @@ class ReportController extends Controller
                 ->orderBy('quantity')
                 ->get(),
             'outOfStock' => Product::with(['brand', 'category'])->where('quantity', 0)->orderBy('name')->get(),
-            'recentTransactions' => InventoryTransaction::with(['product', 'user'])->latest()->take(10)->get(),
+            'recentTransactions' => Transaction::with(['product', 'user'])->latest()->take(10)->get(),
             'pendingOrders' => PurchaseOrder::with(['product', 'supplier'])->where('status', 'pending')->latest()->get(),
             'supplierPerformance' => Supplier::withCount('purchaseOrders')->orderBy('name')->get(),
         ]);

@@ -14,7 +14,9 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        return view('users.index', ['users' => User::orderBy('name')->paginate(20)]);
+        return view('users.index', [
+            'users' => User::orderBy('name')->paginate(20)
+        ]);
     }
 
     public function updateRole(Request $request, User $user): RedirectResponse
@@ -22,7 +24,8 @@ class UserController extends Controller
         $this->authorize('update', $user);
         $data = $request->validate(['role' => ['required', 'in:admin,staff']]);
 
-        if ($user->isAdmin() && $data['role'] === 'staff' && User::where('role', 'admin')->count() === 1) {
+        // Prevent demoting the last admin
+        if ($user->role === 'admin' && $data['role'] === 'staff' && User::where('role', 'admin')->count() === 1) {
             throw ValidationException::withMessages([
                 'role' => 'The last administrator cannot be demoted.',
             ]);
@@ -33,11 +36,18 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('success', 'User role updated.');
     }
 
-    public function destroy(User $user): RedirectResponse
+    public function destroy(Request $request, User $user): RedirectResponse
     {
+        // REQUIREMENT: Admin cannot delete their own account
+        if ($request->user()->is($user)) {
+            return back()->withErrors([
+                'user' => 'You cannot delete your own account while logged in.',
+            ]);
+        }
+
         $this->authorize('delete', $user);
 
-        if ($user->isAdmin() && User::where('role', 'admin')->count() === 1) {
+        if ($user->role === 'admin' && User::where('role', 'admin')->count() === 1) {
             throw ValidationException::withMessages([
                 'user' => 'The last administrator cannot be archived.',
             ]);

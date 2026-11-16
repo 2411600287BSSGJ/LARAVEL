@@ -13,15 +13,8 @@ class Product extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'name',
-        'sku',
-        'brand_id',
-        'category_id',
-        'supplier_id',
-        'quantity',
-        'reorder_level',
-        'unit_price',
-        'description',
+        'name', 'sku', 'brand_id', 'category_id', 'supplier_id',
+        'quantity', 'reorder_level', 'unit_price', 'description',
     ];
 
     protected function casts(): array
@@ -33,30 +26,11 @@ class Product extends Model
         ];
     }
 
-    public function brand(): BelongsTo
-    {
-        return $this->belongsTo(Brand::class);
-    }
-
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(Category::class);
-    }
-
-    public function supplier(): BelongsTo
-    {
-        return $this->belongsTo(Supplier::class);
-    }
-
-    public function transactions(): HasMany
-    {
-        return $this->hasMany(InventoryTransaction::class);
-    }
-
-    public function purchaseOrders(): HasMany
-    {
-        return $this->hasMany(PurchaseOrder::class);
-    }
+    public function brand(): BelongsTo { return $this->belongsTo(Brand::class); }
+    public function category(): BelongsTo { return $this->belongsTo(Category::class); }
+    public function supplier(): BelongsTo { return $this->belongsTo(Supplier::class); }
+    public function transactions(): HasMany { return $this->hasMany(Transaction::class); }
+    public function purchaseOrders(): HasMany { return $this->hasMany(PurchaseOrder::class); }
 
     public function scopeFilter(Builder $query, array $filters): Builder
     {

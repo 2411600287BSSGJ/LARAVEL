@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
+use App\Models\User;
 use App\Services\ReorderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -15,6 +16,7 @@ class ReorderServiceTest extends TestCase
 
     public function test_it_creates_one_purchase_order_when_stock_is_below_the_reorder_level(): void
     {
+        User::factory()->create(['id' => 1]);
         $supplier = Supplier::create(['name' => 'Iron Works']);
         $product = Product::create([
             'name' => 'Dumbbell Set',
@@ -36,12 +38,30 @@ class ReorderServiceTest extends TestCase
         $this->assertDatabaseCount('purchase_orders', 1);
     }
 
-    public function test_it_does_not_order_at_or_above_the_reorder_level(): void
+    public function test_it_creates_an_order_when_stock_is_exactly_at_the_reorder_level(): void
     {
+        User::factory()->create(['id' => 1]);
         $product = Product::create([
             'name' => 'Protein Powder',
             'sku' => 'PP-001',
             'quantity' => 5,
+            'reorder_level' => 5,
+            'unit_price' => 29.99,
+        ]);
+
+        $order = (new ReorderService)->checkReorderPoint($product);
+
+        $this->assertNotNull($order);
+        $this->assertSame(1, $order->quantity);
+        $this->assertDatabaseCount('purchase_orders', 1);
+    }
+
+    public function test_it_does_not_order_above_the_reorder_level(): void
+    {
+        $product = Product::create([
+            'name' => 'Protein Powder',
+            'sku' => 'PP-002',
+            'quantity' => 6,
             'reorder_level' => 5,
             'unit_price' => 29.99,
         ]);

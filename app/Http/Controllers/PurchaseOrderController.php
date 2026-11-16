@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\InventoryTransaction;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
+use App\Models\Transaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -40,11 +40,11 @@ class PurchaseOrderController extends Controller
             $product = Product::query()->lockForUpdate()->findOrFail($order->product_id);
             $product->increment('quantity', $order->quantity);
 
-            InventoryTransaction::create([
+            Transaction::create([
                 'product_id' => $product->id,
                 'user_id' => auth()->id(),
                 'purchase_order_id' => $order->id,
-                'type' => 'inbound',
+                'type' => 'in',
                 'quantity' => $order->quantity,
                 'unit_price' => $product->unit_price,
                 'reference' => $order->reference,

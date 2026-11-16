@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\PurchaseOrder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; // <-- ADDED THIS
 
 class ReorderService
 {
@@ -14,7 +14,7 @@ class ReorderService
         return DB::transaction(function () use ($product): ?PurchaseOrder {
             $lockedProduct = Product::query()->lockForUpdate()->findOrFail($product->getKey());
 
-            if ($lockedProduct->quantity >= $lockedProduct->reorder_level) {
+            if ($lockedProduct->quantity > $lockedProduct->reorder_level) {
                 return null;
             }
 
@@ -31,10 +31,10 @@ class ReorderService
                 'reference' => PurchaseOrder::generateReference(),
                 'product_id' => $lockedProduct->getKey(),
                 'supplier_id' => $lockedProduct->getAttribute('supplier_id'),
-                'quantity' => $lockedProduct->reorder_level - $lockedProduct->quantity,
+                'quantity' => max(1, $lockedProduct->reorder_level - $lockedProduct->quantity),
                 'status' => 'pending',
-                'notes' => 'Automatically generated because stock is below the reorder level.',
-                'created_by' => Auth::id() ?? 1, // <-- CHANGED TO Auth::id()
+                'notes' => 'Automatically generated because stock is at or below the reorder level.',
+                'created_by' => Auth::id() ?? 1, // Safe fallback for automated tasks
             ]);
         });
     }
@@ -42,14 +42,10 @@ class ReorderService
     public function checkAllReorderPoints(): int
     {
         $created = 0;
-
-        $products = Product::query()
-            ->whereColumn('quantity', '<', 'reorder_level')
-            ->get();
+        $products = Product::query()->whereColumn('quantity', '<=', 'reorder_level')->get();
 
         foreach ($products as $product) {
             $purchaseOrder = $this->checkReorderPoint($product);
-
             if ($purchaseOrder?->wasRecentlyCreated) {
                 $created++;
             }

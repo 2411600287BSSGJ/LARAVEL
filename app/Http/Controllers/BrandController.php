@@ -17,6 +17,18 @@ class BrandController extends Controller
         return view('brands.index', ['brands' => Brand::withCount('products')->orderBy('name')->paginate(15)]);
     }
 
+    public function show(Brand $brand): View
+    {
+        $this->authorize('view', $brand);
+
+        return view('catalog.show', [
+            'kind' => 'Brand',
+            'record' => $brand,
+            'products' => $brand->products()->orderBy('name')->paginate(15),
+            'routePrefix' => 'brands',
+        ]);
+    }
+
     public function create(): View
     {
         $this->authorize('create', Brand::class);

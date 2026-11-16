@@ -45,13 +45,15 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('sku')->unique();
+            $table->text('description')->nullable();
+            $table->string('category')->nullable();
             $table->foreignId('brand_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('supplier')->nullable();
             $table->foreignId('supplier_id')->nullable()->constrained()->nullOnDelete();
-            $table->unsignedInteger('quantity')->default(0);
-            $table->unsignedInteger('reorder_level')->default(0);
-            $table->decimal('unit_price', 10, 2);
-            $table->text('description')->nullable();
+            $table->integer('quantity')->default(0);
+            $table->integer('reorder_level')->default(10);
+            $table->decimal('unit_price', 10, 2)->default(0);
             $table->softDeletes();
             $table->timestamps();
         });
@@ -59,7 +61,7 @@ return new class extends Migration
         Schema::create('purchase_orders', function (Blueprint $table) {
             $table->id();
             $table->string('reference')->unique();
-            $table->foreignId('product_id')->constrained()->restrictOnDelete();
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->foreignId('supplier_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedInteger('quantity');
             $table->string('status')->default('pending');
@@ -71,14 +73,31 @@ return new class extends Migration
             $table->index(['product_id', 'status']);
         });
 
+        Schema::create('inventory_transactions', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('purchase_order_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('type'); // stock_in, stock_out, adjustment
+            $table->integer('quantity');
+            $table->decimal('unit_price', 10, 2)->nullable();
+            $table->string('reference_number')->nullable();
+            $table->string('reference')->nullable();
+            $table->text('notes')->nullable();
+            $table->softDeletes();
+            $table->timestamps();
+            $table->index(['product_id', 'created_at']);
+        });
+
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained()->restrictOnDelete();
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('purchase_order_id')->nullable()->constrained()->nullOnDelete();
             $table->string('type');
-            $table->unsignedInteger('quantity');
+            $table->integer('quantity');
             $table->decimal('unit_price', 10, 2)->nullable();
+            $table->string('reference_number')->nullable();
             $table->string('reference')->nullable();
             $table->text('notes')->nullable();
             $table->softDeletes();
@@ -89,6 +108,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('transactions');
+        Schema::dropIfExists('inventory_transactions');
         Schema::dropIfExists('purchase_orders');
         Schema::dropIfExists('products');
         Schema::dropIfExists('suppliers');

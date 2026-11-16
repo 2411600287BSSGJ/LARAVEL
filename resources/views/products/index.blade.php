@@ -1,119 +1,156 @@
 @extends('layouts.app')
-@section('title', 'Products')
+
+@section('title', 'Product Catalog')
 
 @section('content')
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
-            <p class="eyebrow mb-1">Inventory</p>
-            <h1 class="fw-bold mb-0">Products</h1>
+            <p class="text-uppercase text-muted small fw-bold mb-1">
+                <i class="bi bi-box-seam text-primary me-1"></i>Hardware Inventory
+            </p>
+            <h1 class="h2 fw-bold mb-1">Product Catalog</h1>
+            <p class="text-muted mb-0">Manage hardware products, stock levels, reorder thresholds, and pricing.</p>
         </div>
         <div class="d-flex gap-2">
-            <a class="btn btn-outline-success btn-sm" href="{{ route('exports.download', 'products') }}">Export CSV</a>
-            @can('create', \App\Models\Product::class)
-                <a class="btn btn-primary btn-sm" href="{{ route('products.create') }}">Add Product</a>
-            @endcan
+            <a class="btn btn-outline-success" href="{{ route('reports.export.valuation') }}">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export CSV
+            </a>
+            <a class="btn btn-primary" href="{{ route('products.create') }}">
+                <i class="bi bi-plus-lg me-1"></i>Add Product
+            </a>
         </div>
     </div>
 
-    <!-- Filter Form -->
-    <form method="GET" class="panel mb-3">
-        <div class="row g-2 align-items-end">
-            <div class="col-md-4">
-                <label class="form-label text-muted small fw-semibold">Search</label>
-                <input class="form-control" name="search" value="{{ request('search') }}" placeholder="Name or SKU">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label text-muted small fw-semibold">Brand</label>
-                <select class="form-select" name="brand_id">
-                    <option value="">All brands</option>
-                    @foreach($brands as $brand)
-                        <option value="{{ $brand->id }}" @selected(request('brand_id') == $brand->id)>{{ $brand->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label text-muted small fw-semibold">Category</label>
-                <select class="form-select" name="category_id">
-                    <option value="">All categories</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}" @selected(request('category_id') == $category->id)>
-                            {{ $category->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label text-muted small fw-semibold">Stock</label>
-                <select class="form-select" name="stock">
-                    <option value="">Any</option>
-                    <option value="low" @selected(request('stock') === 'low')>Low stock</option>
-                    <option value="out" @selected(request('stock') === 'out')>Out of stock</option>
-                    <option value="in_stock" @selected(request('stock') === 'in_stock')>In stock</option>
-                </select>
-            </div>
-            <div class="col-12 d-flex gap-2 mt-3">
-                <button class="btn btn-primary btn-sm">Filter</button>
-                <a class="btn btn-outline-secondary btn-sm" href="{{ route('products.index') }}">Reset</a>
-            </div>
+    <!-- Filter Card -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-3">
+            <form method="GET" action="{{ route('products.index') }}">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Search Catalog</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                            <input class="form-control" name="search" value="{{ request('search') }}" placeholder="Search by name, SKU, or supplier...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Category</label>
+                        <select class="form-select" name="category">
+                            <option value="">All Categories</option>
+                            @foreach($categoryList as $cat)
+                                <option value="{{ $cat }}" @selected(request('category') == $cat)>{{ $cat }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Stock Status</label>
+                        <select class="form-select" name="stock">
+                            <option value="">All Stock Levels</option>
+                            <option value="in_stock" @selected(request('stock') === 'in_stock')>In Stock (> Reorder)</option>
+                            <option value="low" @selected(request('stock') === 'low')>Low Stock (≤ Reorder)</option>
+                            <option value="out" @selected(request('stock') === 'out')>Out of Stock (0)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-1">
+                        <button class="btn btn-primary flex-fill" type="submit">
+                            <i class="bi bi-funnel me-1"></i>Filter
+                        </button>
+                        <a class="btn btn-outline-secondary" href="{{ route('products.index') }}" title="Reset">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 
-    <!-- Table -->
-    <div class="panel">
+    <!-- Products Table Card -->
+    <div class="card shadow-sm border-0">
         <div class="table-responsive">
-            <table class="table inventory-table align-middle mb-0">
-                <thead>
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
                     <tr>
-                        <th>Product</th>
-                        <th>Brand</th>
+                        <th style="width: 25%;">Product Name & SKU</th>
                         <th>Category</th>
-                        <th>Stock</th>
-                        <th>Reorder Level</th>
-                        <th>Unit Price</th>
-                        @can('create', \App\Models\Product::class)
-                        <th>Actions</th>@endcan
+                        <th>Supplier</th>
+                        <th class="text-center">Current Stock</th>
+                        <th class="text-center">Reorder Level</th>
+                        <th class="text-end">Unit Price</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-end" style="width: 15%;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($products as $product)
                         <tr>
                             <td>
-                                <a href="{{ route('products.show', $product) }}"
-                                    class="text-decoration-none"><strong>{{ $product->name }}</strong></a>
-                                <div class="small text-muted">SKU: {{ $product->sku }}</div>
+                                <a href="{{ route('products.show', $product) }}" class="fw-bold text-decoration-none text-dark d-block">
+                                    {{ $product->name }}
+                                </a>
+                                <small class="text-muted font-monospace"><i class="bi bi-upc me-1"></i>{{ $product->sku }}</small>
                             </td>
-                            <td>{{ $product->brand?->name ?? '—' }}</td>
-                            <td>{{ $product->category?->name ?? '—' }}</td>
                             <td>
-                                <span
-                                    class="badge {{ $product->quantity === 0 ? 'bg-danger' : ($product->quantity <= $product->reorder_level ? 'bg-warning text-dark' : 'bg-success') }}">
-                                    {{ $product->quantity }}
+                                <span class="badge bg-secondary-subtle text-secondary border">
+                                    {{ $product->category_name }}
                                 </span>
                             </td>
-                            <td>{{ $product->reorder_level }}</td>
-                            <td>${{ number_format((float) $product->unit_price, 2) }}</td>
-                            @can('create', \App\Models\Product::class)
-                                <td class="text-nowrap">
-                                    <a class="btn btn-sm btn-outline-primary" href="{{ route('products.edit', $product) }}">Edit</a>
-                                    @can('delete', $product)
-                                        <form class="d-inline" method="POST" action="{{ route('products.destroy', $product) }}"
-                                            onsubmit="return confirm('Archive this product?')">
-                                            @csrf @method('DELETE')
-                                            <button class="btn btn-sm btn-outline-danger">Archive</button>
-                                        </form>
-                                    @endcan
-                                </td>
-                            @endcan
+                            <td>
+                                <small class="text-muted">{{ $product->supplier_name }}</small>
+                            </td>
+                            <td class="text-center">
+                                <strong class="fs-6 {{ $product->quantity == 0 ? 'text-danger' : ($product->quantity <= $product->reorder_level ? 'text-warning' : 'text-success') }}">
+                                    {{ $product->quantity }}
+                                </strong>
+                            </td>
+                            <td class="text-center text-muted">
+                                {{ $product->reorder_level }}
+                            </td>
+                            <td class="text-end fw-semibold">
+                                ${{ number_format((float) $product->unit_price, 2) }}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-{{ $product->stock_status_color }}">
+                                    {{ $product->stock_status }}
+                                </span>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-sm btn-outline-info" href="{{ route('products.show', $product) }}" title="View details and transaction history">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                <a class="btn btn-sm btn-outline-primary" href="{{ route('products.edit', $product) }}" title="Edit product">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form class="d-inline" method="POST" action="{{ route('products.destroy', $product) }}" onsubmit="return confirm('Are you sure you want to delete \'{{ $product->name }}\'?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete product">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">No products match your filters.</td>
+                            <td colspan="8" class="text-center text-muted py-5">
+                                <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                                <h5>No Products Found</h5>
+                                <p class="small mb-3">No products matched your search or filter criteria.</p>
+                                <a href="{{ route('products.create') }}" class="btn btn-primary btn-sm">Add New Product</a>
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-        <div class="mt-3">
-            {{ $products->links('pagination::bootstrap-5') }}
-        </div>
+        @if($products->hasPages())
+            <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center">
+                <span class="small text-muted">
+                    Showing {{ $products->firstItem() }} to {{ $products->lastItem() }} of {{ $products->total() }} products
+                </span>
+                <div>
+                    {{ $products->links() }}
+                </div>
+            </div>
+        @endif
     </div>
 @endsection

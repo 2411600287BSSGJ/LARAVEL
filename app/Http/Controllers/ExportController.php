@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\InventoryTransaction;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
-use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -19,7 +19,7 @@ class ExportController extends Controller
         'brands' => [Brand::class, ['id', 'name', 'description', 'deleted_at', 'created_at', 'updated_at']],
         'categories' => [Category::class, ['id', 'name', 'description', 'deleted_at', 'created_at', 'updated_at']],
         'suppliers' => [Supplier::class, ['id', 'name', 'contact_person', 'email', 'phone', 'address', 'lead_time_days', 'deleted_at', 'created_at', 'updated_at']],
-        'transactions' => [Transaction::class, ['id', 'product_id', 'user_id', 'purchase_order_id', 'type', 'quantity', 'unit_price', 'reference', 'notes', 'deleted_at', 'created_at', 'updated_at']],
+        'transactions' => [InventoryTransaction::class, ['id', 'product_id', 'user_id', 'purchase_order_id', 'type', 'quantity', 'unit_price', 'reference', 'notes', 'deleted_at', 'created_at', 'updated_at']],
         'purchase-orders' => [PurchaseOrder::class, ['id', 'reference', 'product_id', 'supplier_id', 'quantity', 'status', 'notes', 'created_by', 'received_at', 'deleted_at', 'created_at', 'updated_at']],
         'users' => [User::class, ['id', 'name', 'email', 'email_verified_at', 'role', 'deleted_at', 'created_at', 'updated_at']],
     ];

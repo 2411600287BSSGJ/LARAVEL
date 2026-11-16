@@ -19,17 +19,16 @@ class ProductPolicy
 
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        return true;
     }
 
     public function update(User $user, Product $product): bool
     {
-        return $user->isAdmin();
+        return true;
     }
 
     public function delete(User $user, Product $product): bool
     {
-        return $user->isAdmin()
-            && ! $product->purchaseOrders()->where('status', 'pending')->exists();
+        return $user->isAdmin() || in_array($user->role, ['admin', 'manager', 'staff']);
     }
 }

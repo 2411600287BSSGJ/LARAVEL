@@ -13,40 +13,37 @@ class CategoryController extends Controller
     public function index(): View
     {
         $this->authorize('viewAny', Category::class);
-        $categories = Category::withCount('products')->orderBy('name')->paginate(15);
-        return view('categories.index', compact('categories'));
-    }
 
-    public function show(Category $category): View
-    {
-        $this->authorize('view', $category);
-        $products = $category->products()->orderBy('name')->paginate(15);
-        return view('categories.show', compact('category', 'products'));
+        return view('categories.index', ['categories' => Category::withCount('products')->orderBy('name')->paginate(15)]);
     }
 
     public function create(): View
     {
         $this->authorize('create', Category::class);
-        return view('categories.create');
+
+        return view('catalog.create', ['kind' => 'Category', 'routePrefix' => 'categories', 'record' => new Category]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $this->authorize('create', Category::class);
         Category::create($this->validateRecord($request));
+
         return redirect()->route('categories.index')->with('success', 'Category added.');
     }
 
     public function edit(Category $category): View
     {
         $this->authorize('update', $category);
-        return view('categories.edit', compact('category'));
+
+        return view('catalog.edit', ['kind' => 'Category', 'routePrefix' => 'categories', 'record' => $category]);
     }
 
     public function update(Request $request, Category $category): RedirectResponse
     {
         $this->authorize('update', $category);
         $category->update($this->validateRecord($request, $category));
+
         return redirect()->route('categories.index')->with('success', 'Category updated.');
     }
 
@@ -54,6 +51,7 @@ class CategoryController extends Controller
     {
         $this->authorize('delete', $category);
         $category->delete();
+
         return redirect()->route('categories.index')->with('success', 'Category archived.');
     }
 

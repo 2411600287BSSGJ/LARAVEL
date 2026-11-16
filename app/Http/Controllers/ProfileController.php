@@ -26,21 +26,13 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $user = $request->user();
-        $user->fill($request->validated());
-        $emailChanged = $user->isDirty('email');
+        $request->user()->fill($request->validated());
 
-        if ($emailChanged) {
-            $user->email_verified_at = null;
+        if ($request->user()->isDirty('email')) {
+            $request->user()->email_verified_at = null;
         }
 
-        $user->save();
-
-        if ($emailChanged) {
-            $user->sendEmailVerificationNotification();
-
-            return Redirect::route('verification.notice')->with('status', 'verification-link-sent');
-        }
+        $request->user()->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
@@ -50,17 +42,11 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        $user = $request->user();
-
-        if ($user->isAdmin()) {
-            return back()->withErrors([
-                'account' => 'Administrators cannot delete their own account.',
-            ]);
-        }
-
         $request->validateWithBag('userDeletion', [
             'password' => ['required', 'current_password'],
         ]);
+
+        $user = $request->user();
 
         Auth::logout();
 

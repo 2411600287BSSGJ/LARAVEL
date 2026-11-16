@@ -13,7 +13,7 @@ return new class extends Migration
         Schema::dropIfExists('workout_plans');
         Schema::dropIfExists('workouts');
         Schema::dropIfExists('trainers');
-        Schema::dropIfExists('notifications');
+        // keep notifications table for low stock alerts
     }
 
     public function down(): void

@@ -1,0 +1,188 @@
+/**
+ * Hardware Inventory System - Custom Theme & Overrides
+ * Connecting to Laboratory Exercise 4 Design System
+ */
+:root {
+    --primary: #c0392b;
+    --primary-dark: #962d22;
+    --primary-light: #e74c3c;
+    --secondary: #34495e;
+    --secondary-light: #5d6d7e;
+    --accent: #d35400;
+    --accent-light: #e67e22;
+
+    --bg-light: #f4f6f9;
+    --bg-card: #ffffff;
+    --text-main: #2c3e50;
+    --text-muted: #7f8c8d;
+
+    --success: #27ae60;
+    --warning: #f39c12;
+    --danger: #e74c3c;
+    --info: #2980b9;
+
+    --border-radius: 0.5rem;
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+body.dashboard-body {
+    background-color: var(--bg-light);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Navbar */
+.navbar-custom {
+    background: linear-gradient(135deg, var(--secondary) 0%, #1a252f 100%);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #ffffff !important;
+}
+
+/* Cards */
+.card-stat {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--hover-shadow);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 1.5rem;
+}
+
+/* Pulse animation for AJAX polling updates */
+.stat-updated {
+    animation: flashBg 1s ease-in-out;
+}
+
+@keyframes flashBg {
+    0% { background-color: rgba(243, 156, 18, 0.25); }
+    100% { background-color: transparent; }
+}
+
+/* Stock status badges */
+.badge-stock-in {
+    background-color: #d4edda;
+    color: #155724;
+    font-weight: 600;
+    padding: 0.4em 0.75em;
+    border-radius: 50rem;
+}
+
+.badge-stock-low {
+    background-color: #fff3cd;
+    color: #856404;
+    font-weight: 600;
+    padding: 0.4em 0.75em;
+    border-radius: 50rem;
+}
+
+.badge-stock-out {
+    background-color: #f8d7da;
+    color: #721c24;
+    font-weight: 600;
+    padding: 0.4em 0.75em;
+    border-radius: 50rem;
+}
+
+/* Sidebar navigation */
+.sidebar-card {
+    border: none;
+    border-radius: var(--border-radius);
+    background: #ffffff;
+    box-shadow: var(--card-shadow);
+}
+
+.sidebar-card .nav-link {
+    color: #555;
+    font-weight: 500;
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.sidebar-card .nav-link:hover {
+    background-color: #f1f4f8;
+    color: var(--primary);
+}
+
+.sidebar-card .nav-link.active {
+    background-color: var(--primary);
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(192, 57, 43, 0.25);
+}
+
+/* Tables */
+.table-custom {
+    background: #ffffff;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+}
+
+.table-custom thead th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 0.85rem 1rem;
+}
+
+.table-custom tbody td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+}
+
+/* Notification Dropdown */
+.notification-menu {
+    width: 340px;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    transition: background-color 0.2s;
+    font-size: 0.875rem;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Forms */
+.form-card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    background: #ffffff;
+}
+
+.btn-primary-custom {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+}
+
+.btn-primary-custom:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: #ffffff;
+}

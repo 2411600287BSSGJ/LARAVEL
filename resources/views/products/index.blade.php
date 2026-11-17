@@ -120,13 +120,6 @@
                                 <a class="btn btn-sm btn-outline-primary" href="{{ route('products.edit', $product) }}" title="Edit product">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <form class="d-inline" method="POST" action="{{ route('products.destroy', $product) }}" onsubmit="return confirm('Are you sure you want to delete \'{{ $product->name }}\'?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete product">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
                             </td>
                         </tr>
                     @empty

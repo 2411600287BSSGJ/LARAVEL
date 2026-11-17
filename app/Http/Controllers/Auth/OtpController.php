@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -78,6 +79,12 @@ class OtpController extends Controller
             return back()->withErrors(['otp' => 'Invalid code. Please try again.']);
         }
 
+        // An email OTP confirms access to the user's email address.
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+            event(new Verified($user));
+        }
+
         // Clear OTP and log in
         $user->update(['otp_code' => null, 'otp_expires_at' => null]);
         $request->session()->forget(['otp_user_id', 'otp_email', 'otp_intent', 'otp_remember']);
@@ -118,6 +125,7 @@ class OtpController extends Controller
             'password' => $request->session()->get('otp_register_password'),
             'role'     => 'staff',
         ]);
+        $user->markEmailAsVerified();
 
         // Clear session
         $request->session()->forget([

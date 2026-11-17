@@ -4,8 +4,6 @@ namespace App\Observers;
 
 use App\Models\InventoryTransaction;
 use App\Models\Product;
-use App\Models\User;
-use App\Notifications\LowStockNotification;
 use App\Services\ReorderService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -49,10 +47,8 @@ class InventoryTransactionObserver
 
             $product->save();
 
-            // Trigger low stock notification and automated reorder checking
+            // Check for automated replenishment when the product reaches its reorder point.
             if ($product->quantity <= $product->reorder_level) {
-                $this->triggerLowStockNotification($product);
-
                 try {
                     app(ReorderService::class)->checkReorderPoint($product);
                 } catch (\Throwable $e) {
@@ -120,29 +116,4 @@ class InventoryTransactionObserver
         });
     }
 
-    /**
-     * Send low stock notification avoiding duplicate alerts.
-     */
-    protected function triggerLowStockNotification(Product $product): void
-    {
-        try {
-            $recipients = User::all();
-            if ($recipients->isEmpty()) {
-                return;
-            }
-
-            foreach ($recipients as $recipient) {
-                $recentNotification = $recipient->unreadNotifications()
-                    ->where('data->product_id', $product->id)
-                    ->where('created_at', '>=', now()->subHours(2))
-                    ->exists();
-
-                if (!$recentNotification) {
-                    $recipient->notify(new LowStockNotification($product));
-                }
-            }
-        } catch (\Throwable $e) {
-            Log::warning("Failed to dispatch low stock notification: {$e->getMessage()}");
-        }
-    }
 }

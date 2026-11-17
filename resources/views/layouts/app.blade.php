@@ -28,7 +28,7 @@
                 <div class="ms-auto d-flex align-items-center gap-3 mt-2 mt-lg-0">
                     <!-- Notifications Dropdown -->
                     @php
-                        $unreadNotifications = auth()->user()->unreadNotifications()->take(5)->get();
+                        $unreadNotifications = auth()->user()->unreadNotifications()->latest()->take(5)->get();
                         $unreadCount = auth()->user()->unreadNotifications()->count();
                     @endphp
                     <div class="dropdown" id="notificationDropdownContainer">
@@ -42,12 +42,10 @@
                         <div class="dropdown-menu dropdown-menu-end shadow notification-menu p-0">
                             <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 fw-bold"><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> Low Stock Alerts</h6>
-                                @if($unreadCount > 0)
-                                    <form action="{{ route('notifications.markAllRead') }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <button type="submit" class="btn btn-link btn-sm p-0 text-decoration-none">Mark all read</button>
-                                    </form>
-                                @endif
+                                <form id="markAllNotificationsRead" action="{{ route('notifications.markAllRead') }}" method="POST" class="d-inline {{ $unreadCount > 0 ? '' : 'd-none' }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-link btn-sm p-0 text-decoration-none">Mark all read</button>
+                                </form>
                             </div>
                             <div class="list-group list-group-flush" id="notificationList">
                                 @forelse($unreadNotifications as $notification)
@@ -127,6 +125,79 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const badge = document.getElementById('nav-notification-badge');
+            const list = document.getElementById('notificationList');
+            const unreadUrl = @json(route('notifications.unread'));
+            const productsUrl = @json(url('/products'));
+
+            const addText = (parent, tag, className, text) => {
+                const element = document.createElement(tag);
+                element.className = className;
+                element.textContent = text;
+                parent.appendChild(element);
+                return element;
+            };
+
+            const refreshNotifications = async () => {
+                const response = await fetch(unreadUrl, {
+                    headers: { Accept: 'application/json' },
+                    credentials: 'same-origin',
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Notification refresh failed with status ${response.status}`);
+                }
+
+                const payload = await response.json();
+                badge.textContent = String(payload.count);
+                badge.classList.toggle('d-none', payload.count === 0);
+
+                const markAllForm = document.getElementById('markAllNotificationsRead');
+                if (markAllForm) {
+                    markAllForm.classList.toggle('d-none', payload.count === 0);
+                }
+
+                list.replaceChildren();
+
+                if (payload.notifications.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'p-4 text-center text-muted small';
+                    const icon = document.createElement('i');
+                    icon.className = 'bi bi-check2-circle text-success fs-3 d-block mb-1';
+                    empty.appendChild(icon);
+                    addText(empty, 'div', '', 'All stock levels are optimal. No alerts.');
+                    list.appendChild(empty);
+                    return;
+                }
+
+                payload.notifications.forEach((notification) => {
+                    const data = notification.data;
+                    const link = document.createElement('a');
+                    link.className = 'list-group-item list-group-item-action notification-item py-2 px-3';
+                    link.href = data.product_id
+                        ? `${productsUrl}/${encodeURIComponent(data.product_id)}`
+                        : @json(route('dashboard'));
+
+                    const heading = document.createElement('div');
+                    heading.className = 'd-flex justify-content-between align-items-start';
+                    addText(heading, 'strong', 'text-dark', data.product_name || 'Product Alert');
+                    addText(heading, 'span', 'badge bg-warning text-dark', `${data.current_quantity ?? 0} left`);
+                    link.appendChild(heading);
+
+                    addText(link, 'p', 'mb-1 text-muted small', data.message || 'Stock is at or below reorder level.');
+                    addText(link, 'small', 'text-secondary', new Date(notification.created_at).toLocaleString());
+                    list.appendChild(link);
+                });
+            };
+
+            refreshNotifications().catch((error) => console.error(error));
+            window.setInterval(() => {
+                refreshNotifications().catch((error) => console.error(error));
+            }, 15000);
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>

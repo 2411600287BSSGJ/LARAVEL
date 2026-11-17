@@ -39,6 +39,12 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 @endif
+@if(session('status') === 'verification-link-sent' || session('verification-link-sent'))
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>A verification link has been sent to your email address.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+@endif
 
 <div class="row g-4">
 
@@ -194,6 +200,17 @@
                             <span class="text-warning small"><i class="bi bi-exclamation-circle-fill me-1"></i>Not Verified</span>
                         @endif
                     </li>
+                    @unless($user->hasVerifiedEmail())
+                        <li class="pt-3">
+                            <p class="small text-muted mb-2">Verify your email address to confirm it belongs to you.</p>
+                            <form method="POST" action="{{ route('verification.send') }}">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="bi bi-envelope-check me-1"></i>Send Verification Email
+                                </button>
+                            </form>
+                        </li>
+                    @endunless
                     <li class="d-flex justify-content-between align-items-center py-2">
                         <span class="text-muted small fw-semibold">Member Since</span>
                         <span class="text-dark small">{{ $user->created_at->format('M d, Y') }}</span>

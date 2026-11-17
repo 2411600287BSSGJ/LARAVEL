@@ -15,8 +15,8 @@
             <div class="col-11 col-sm-9 col-md-7 col-lg-5 col-xl-4">
                 <div class="card shadow-lg border-0 rounded-4 login-card">
                     <div class="card-header bg-transparent border-0 text-center pt-4 pb-2">
-                        <div class="stat-icon bg-danger text-white rounded-circle mx-auto mb-3 shadow" style="width: 64px; height: 64px; font-size: 1.8rem;">
-                            <i class="bi bi-activity"></i>
+                        <div class="brand-icon mb-3">
+                            <img src="{{ asset('js/assets/catsss.png') }}" alt="Gym Inventory cat logo" class="brand-logo">
                         </div>
                         <h3 class="fw-bold text-dark mb-1">Gym Inventory</h3>
                         <p class="text-muted small">Sign in to access your gym stock management dashboard</p>

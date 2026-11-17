@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
+use App\Notifications\LowStockNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -46,10 +48,23 @@ class NotificationController extends Controller
      */
     public function unread(Request $request): JsonResponse
     {
-        $unread = $request->user()->unreadNotifications()->take(10)->get();
+        $user = $request->user();
+        $notifiedProductIds = $user->notifications()
+            ->where('type', LowStockNotification::class)
+            ->get(['data'])
+            ->map(fn ($notification) => (int) ($notification->data['product_id'] ?? 0))
+            ->filter()
+            ->values();
+
+        Product::query()
+            ->whereColumn('quantity', '<=', 'reorder_level')
+            ->whereNotIn('id', $notifiedProductIds)
+            ->each(fn (Product $product) => $user->notify(new LowStockNotification($product)));
+
+        $unread = $request->user()->unreadNotifications()->latest()->take(10)->get();
 
         return response()->json([
-            'count' => $request->user()->unreadNotifications()->count(),
+            'count' => $user->unreadNotifications()->count(),
             'notifications' => $unread,
         ]);
     }

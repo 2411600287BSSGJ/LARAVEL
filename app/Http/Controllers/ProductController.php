@@ -187,19 +187,6 @@ class ProductController extends Controller
     }
 
     /**
-     * Remove the specified product from storage.
-     */
-    public function destroy(Product $product): RedirectResponse
-    {
-        $this->authorize('delete', $product);
-
-        $name = $product->name;
-        $product->delete();
-
-        return redirect()->route('products.index')->with('success', "Product '{$name}' deleted successfully.");
-    }
-
-    /**
      * Provide shared options for forms.
      */
     private function formOptions(): array

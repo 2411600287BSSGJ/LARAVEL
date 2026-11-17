@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Notifications\LowStockNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class HardwareInventorySystemTest extends TestCase
@@ -106,11 +107,7 @@ class HardwareInventorySystemTest extends TestCase
         $updateResponse->assertRedirect(route('products.index'));
         $this->assertSame('Updated 20oz Claw Hammer', $product->fresh()->name);
         $this->assertSame('27.50', (string) $product->fresh()->unit_price);
-
-        // 5. Delete product
-        $deleteResponse = $this->actingAs($this->admin)->delete(route('products.destroy', $product));
-        $deleteResponse->assertRedirect(route('products.index'));
-        $this->assertSoftDeleted('products', ['id' => $product->id]);
+        $this->assertFalse(Route::has('products.destroy'));
     }
 
     public function test_stock_in_transaction_increases_product_quantity(): void

@@ -12,16 +12,31 @@ A full-featured Laravel web application for tracking gym equipment and supplemen
 - **Role-based access control** — `admin` and `staff` roles with different permissions.
 - **Admin account protection** — Administrators cannot delete their own accounts (enforced at both controller and view level).
 
-### 📦 Inventory Management
+### 📦 Inventory & Procurement Management
 - Full **CRUD** for products, brands, categories, suppliers, and equipment types.
 - **Stock In / Stock Out / Adjustment** transactions with automatic quantity tracking.
 - Stock-out transactions **cannot reduce inventory below zero**.
-- When quantity drops below the reorder level, **one pending purchase order** is automatically created (no duplicates).
-- Purchase orders can be **received** by an administrator — this adds stock and records an inbound transaction.
+- **Manual & Automated Purchase Orders** — Create custom procurement orders or allow automatic creation when stock drops below the reorder level.
+- **Receive & Cancel Purchase Orders** — Receiving automatically increments stock and records an inbound transaction; pending orders can be cancelled.
+- **Printable Purchase Order Invoice** — Generate clean PO documents with vendor details, line items, and approval sign-off.
+- **Supplier Profile Pages** — Detailed vendor profiles with contact info, fulfillment rates, supplied product catalog, and order history.
+- **Product Barcode Labels** — Generate printable shelf and warehouse barcode labels with SKU and price tag.
+- **Quick Action Buttons** — One-click Stock In, Stock Out, Reorder, and Barcode printing directly from the product page.
 - Hourly reorder check via Laravel Scheduler: `php artisan inventory:check-reorder-points`.
 - All key models use **soft deletes**.
 
-### 📊 Dashboard & Charts
+### 📋 Audit Trail (CRUD, Export & Print)
+- **Full CRUD** — Record (Create), view (Read), correct/adjust (Update), and delete/reverse (Delete) audit trail records.
+- **Stock Reconciliation on Edit** — Modifying an audit record's quantity automatically recalculates and reconciles the product's live stock balance.
+- **Filtered CSV Export** — One-click download of the complete or filtered audit trail with Philippine Peso (₱) valuations.
+- **Printable Audit Ledger** — Clean landscape report layout designed for print or save-as-PDF with audit compliance sign-off blocks.
+- **Printable Transaction Voucher** — Individual movement audit slips with reference numbers, staff attribution, and approval signature lines.
+
+### 📧 Email Notifications & Alerts (Resend)
+- Transactional email powered by [Resend](https://resend.com) (`resend/resend-laravel`).
+- **Staff Movement Email Alerts** — Whenever a staff member encodes a **Stock In** or **Stock Out**, an automated notification email is immediately dispatched to **both the staff and all admin accounts** with product details, quantity moved, total value in ₱, updated stock level, and reference number.
+- **Email OTP 2FA** — OTP emails sent on every login and registration attempt.
+- **Low Stock Alerts** — Automated notifications dispatched when stock falls to or below reorder level.
 - **Live stat cards** — Total Products, Low Stock, Out of Stock, Total Inventory Value (auto-refreshed via AJAX every 30 s).
 - **Doughnut chart** — Stock status breakdown (In Stock / Low Stock / Out of Stock).
 - **Bar chart** — Inventory value by category (₱ Philippine Peso).
@@ -141,14 +156,20 @@ php artisan inventory:make-admin admin@example.com
 php artisan test
 ```
 
-**45 tests, 174 assertions** — all passing.
+**60 tests, 237 assertions** — all passing.
 
 Test coverage includes:
 - Authentication (login, logout, OTP flow)
 - Registration (OTP gating — account not created until verified)
+- Audit Trail CRUD lifecycle (Create, Read, Update, Delete with stock reconciliation)
+- Audit Trail CSV Export & Printable ledger / vouchers
+- Staff stock movement email alerts to staff and admin
+- Manual Purchase Order creation, cancellation, and printable PO invoices
+- Supplier show profile with catalog items and fulfillment performance
+- Product barcode label and tag generation
 - Product CRUD lifecycle
 - Stock In / Stock Out / Adjustment transactions
-- Reorder point logic and purchase order creation
+- Reorder point logic and automated purchase order creation
 - Low stock notifications
 - CSV export integrity
 - API endpoint responses

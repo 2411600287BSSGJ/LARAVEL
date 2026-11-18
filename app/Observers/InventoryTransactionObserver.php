@@ -84,6 +84,9 @@ class InventoryTransactionObserver
                 // Ignore sync errors in test environments
             }
         });
+
+        // Trigger email notification when staff encodes a stock in or stock out
+        $this->triggerStaffMovementNotification($transaction);
     }
 
     /**
@@ -143,6 +146,55 @@ class InventoryTransactionObserver
             }
         } catch (\Throwable $e) {
             Log::warning("Failed to dispatch low stock notification: {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * Send email notification to all staff and admin users when staff encodes a stock in or stock out.
+     */
+    protected function triggerStaffMovementNotification(InventoryTransaction $transaction): void
+    {
+        try {
+            $type = strtolower($transaction->type ?? '');
+            $isStockMovement = in_array($type, ['stock_in', 'in', 'inbound', 'purchase', 'stock_out', 'out', 'outbound', 'sale']);
+            if (!$isStockMovement) {
+                return;
+            }
+
+            // Find the encoding user
+            $staffUser = $transaction->user ?? User::find($transaction->user_id) ?? auth()->user();
+            if (!$staffUser || $staffUser->role !== 'staff') {
+                return;
+            }
+
+            $product = $transaction->product ?? Product::find($transaction->product_id);
+            if (!$product) {
+                return;
+            }
+
+            // Get all staff and admin recipients with valid emails
+            $recipients = User::whereIn('role', ['admin', 'staff'])
+                ->whereNotNull('email')
+                ->get();
+
+            // Ensure the encoding staff member is included
+            if (!$recipients->contains('id', $staffUser->id)) {
+                $recipients->push($staffUser);
+            }
+
+            foreach ($recipients as $recipient) {
+                if (empty($recipient->email)) {
+                    continue;
+                }
+                try {
+                    \Illuminate\Support\Facades\Mail::to($recipient->email, $recipient->name)
+                        ->send(new \App\Mail\StaffStockMovementMail($transaction, $product, $staffUser, $recipient));
+                } catch (\Throwable $mailEx) {
+                    Log::warning("Could not send stock movement email to {$recipient->email}: {$mailEx->getMessage()}");
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning("Failed to trigger staff stock movement notification: {$e->getMessage()}");
         }
     }
 }

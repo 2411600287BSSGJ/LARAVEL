@@ -11,16 +11,33 @@
             <h1 class="h2 fw-bold mb-1">{{ $product->name }}</h1>
             <p class="text-muted mb-0 font-monospace">SKU: {{ $product->sku }}</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2">
             <a class="btn btn-outline-secondary" href="{{ route('products.index') }}">
                 <i class="bi bi-arrow-left me-1"></i>Back
             </a>
-            <a class="btn btn-primary" href="{{ route('transactions.create', ['product_id' => $product->id]) }}">
-                <i class="bi bi-arrow-left-right me-1"></i>Record Transaction
+            <!-- Barcode Label Print -->
+            <a class="btn btn-outline-dark" href="{{ route('products.barcode', $product) }}" target="_blank" title="Print Barcode Tag">
+                <i class="bi bi-upc-scan me-1"></i>Barcode Label
             </a>
+            <!-- Quick Stock In -->
+            <a class="btn btn-outline-success" href="{{ route('transactions.create', ['product_id' => $product->id, 'type' => 'stock_in']) }}" title="Quick Stock In">
+                <i class="bi bi-box-arrow-in-down me-1"></i>Stock In
+            </a>
+            <!-- Quick Stock Out -->
+            <a class="btn btn-outline-danger" href="{{ route('transactions.create', ['product_id' => $product->id, 'type' => 'stock_out']) }}" title="Quick Stock Out">
+                <i class="bi bi-box-arrow-up me-1"></i>Stock Out
+            </a>
+            <!-- Reorder Purchase Order -->
+            @can('create', \App\Models\PurchaseOrder::class)
+                <a class="btn btn-outline-warning text-dark" href="{{ route('purchase-orders.create', ['product_id' => $product->id, 'supplier_id' => $product->supplier_id]) }}" title="Create Purchase Order">
+                    <i class="bi bi-cart-plus me-1"></i>Reorder
+                </a>
+            @endcan
+            <!-- Edit -->
             <a class="btn btn-outline-primary" href="{{ route('products.edit', $product) }}">
                 <i class="bi bi-pencil me-1"></i>Edit
             </a>
+            <!-- Delete -->
             <form method="POST" action="{{ route('products.destroy', $product) }}" class="d-inline" onsubmit="return confirm('Delete this product permanently?');">
                 @csrf
                 @method('DELETE')

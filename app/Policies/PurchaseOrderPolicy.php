@@ -19,10 +19,15 @@ class PurchaseOrderPolicy
 
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        return true;
     }
 
     public function receive(User $user, PurchaseOrder $purchaseOrder): bool
+    {
+        return $user->isAdmin() && $purchaseOrder->status === 'pending';
+    }
+
+    public function cancel(User $user, PurchaseOrder $purchaseOrder): bool
     {
         return $user->isAdmin() && $purchaseOrder->status === 'pending';
     }

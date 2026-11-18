@@ -17,6 +17,17 @@ class SupplierController extends Controller
         return view('suppliers.index', ['suppliers' => Supplier::withCount('purchaseOrders')->orderBy('name')->paginate(15)]);
     }
 
+    public function show(Supplier $supplier): View
+    {
+        $this->authorize('view', $supplier);
+
+        $supplier->load(['products' => fn ($q) => $q->orderBy('name')]);
+        $purchaseOrders = $supplier->purchaseOrders()->with('product')->latest()->paginate(10);
+        $performance = $supplier->calculatePerformance();
+
+        return view('suppliers.show', compact('supplier', 'purchaseOrders', 'performance'));
+    }
+
     public function create(): View
     {
         $this->authorize('create', Supplier::class);

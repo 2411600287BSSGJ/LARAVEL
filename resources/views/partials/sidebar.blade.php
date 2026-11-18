@@ -11,8 +11,8 @@
                 <a class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('products.index') }}">
                     <i class="bi bi-box-seam me-2"></i>Products
                 </a>
-                <a class="nav-link {{ request()->routeIs('transactions.*') && !request()->routeIs('adjustments.*') ? 'active' : '' }}" href="{{ route('transactions.index') }}">
-                    <i class="bi bi-arrow-left-right me-2"></i>Transactions
+                <a class="nav-link {{ (request()->routeIs('transactions.*') || request()->routeIs('audit-trail.*')) && !request()->routeIs('adjustments.*') ? 'active' : '' }}" href="{{ route('transactions.index') }}">
+                    <i class="bi bi-journal-text me-2"></i>Audit Trail
                 </a>
                 <a class="nav-link {{ request()->routeIs('adjustments.*') ? 'active' : '' }}" href="{{ route('adjustments.create') }}">
                     <i class="bi bi-sliders me-2"></i>Stock Adjustment

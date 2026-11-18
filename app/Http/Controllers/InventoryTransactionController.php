@@ -154,6 +154,223 @@ class InventoryTransactionController extends Controller
     }
 
     /**
+     * Show the form for editing an existing transaction.
+     */
+    public function edit(InventoryTransaction $transaction): View
+    {
+        $this->authorize('update', $transaction);
+
+        $transaction->load(['product', 'user']);
+        $products = Product::orderBy('name')->get();
+        $types = [
+            'stock_in' => 'Stock In (Replenishment / Purchase)',
+            'stock_out' => 'Stock Out (Sale / Usage / Dispatch)',
+            'adjustment' => 'Stock Adjustment (Physical Count Audit)',
+        ];
+
+        return view('transactions.edit', compact('transaction', 'products', 'types'));
+    }
+
+    /**
+     * Update the specified transaction in storage and reconcile stock if quantity changed.
+     */
+    public function update(Request $request, InventoryTransaction $transaction): RedirectResponse
+    {
+        $this->authorize('update', $transaction);
+
+        $validated = $request->validate([
+            'quantity' => ['required', 'integer', 'min:1'],
+            'unit_price' => ['nullable', 'numeric', 'min:0'],
+            'reference_number' => ['nullable', 'string', 'max:100'],
+            'reference' => ['nullable', 'string', 'max:100'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $product = Product::findOrFail($transaction->product_id);
+        $oldQty = (int) $transaction->quantity;
+        $newQty = (int) $validated['quantity'];
+        $type = strtolower($transaction->type);
+
+        // If quantity changed, reconcile product inventory stock
+        if ($oldQty !== $newQty) {
+            if (in_array($type, ['stock_in', 'in', 'inbound', 'purchase'])) {
+                $difference = $newQty - $oldQty;
+                if ($product->quantity + $difference < 0) {
+                    return redirect()->back()->withErrors([
+                        'quantity' => "Cannot reduce stock in by " . abs($difference) . " units. Current stock is {$product->quantity}.",
+                    ])->withInput();
+                }
+                $product->quantity += $difference;
+            } elseif (in_array($type, ['stock_out', 'out', 'outbound', 'sale'])) {
+                $difference = $newQty - $oldQty;
+                if ($product->quantity < $difference) {
+                    return redirect()->back()->withErrors([
+                        'quantity' => "Insufficient stock to increase stock out. Available: {$product->quantity} unit(s). Additional required: {$difference} unit(s).",
+                    ])->withInput();
+                }
+                $product->quantity -= $difference;
+            } elseif ($type === 'adjustment') {
+                $difference = $newQty - $oldQty;
+                if ($product->quantity + $difference < 0) {
+                    return redirect()->back()->withErrors([
+                        'quantity' => "Adjustment would result in negative stock balance.",
+                    ])->withInput();
+                }
+                $product->quantity += $difference;
+            }
+            $product->save();
+        }
+
+        $ref = $validated['reference_number'] ?? $validated['reference'] ?? $transaction->reference_number;
+
+        $transaction->update([
+            'quantity' => $newQty,
+            'unit_price' => $validated['unit_price'] ?? $transaction->unit_price,
+            'reference_number' => $ref,
+            'reference' => $ref,
+            'notes' => $validated['notes'] ?? $transaction->notes,
+        ]);
+
+        return redirect()->route('transactions.show', $transaction)
+            ->with('success', "Audit record '{$ref}' updated successfully.");
+    }
+
+    /**
+     * Export audit trail records to CSV with current active filters.
+     */
+    public function exportCsv(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $this->authorize('viewAny', InventoryTransaction::class);
+
+        $query = InventoryTransaction::with(['product', 'user']);
+
+        if ($request->filled('product_id')) {
+            $query->where('product_id', $request->product_id);
+        }
+
+        if ($request->filled('type')) {
+            $type = $request->type;
+            if ($type === 'stock_in') {
+                $query->whereIn('type', ['stock_in', 'in', 'inbound', 'purchase']);
+            } elseif ($type === 'stock_out') {
+                $query->whereIn('type', ['stock_out', 'out', 'outbound', 'sale']);
+            } elseif ($type === 'adjustment') {
+                $query->where('type', 'adjustment');
+            } else {
+                $query->where('type', $type);
+            }
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $fileName = 'audit_trail_' . now()->format('Ymd_His') . '.csv';
+
+        return response()->streamDownload(function () use ($query) {
+            $handle = fopen('php://output', 'w');
+            // UTF-8 BOM for Excel compatibility
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            fputcsv($handle, [
+                'Audit ID',
+                'Date & Time',
+                'Movement Type',
+                'Product Name',
+                'SKU',
+                'Quantity Changed',
+                'Unit Price (PHP)',
+                'Total Value (PHP)',
+                'Reference Number',
+                'Encoded By',
+                'User Role',
+                'Notes',
+            ]);
+
+            $query->latest()->chunk(200, function ($transactions) use ($handle) {
+                foreach ($transactions as $tx) {
+                    $isStockIn = in_array(strtolower($tx->type), ['stock_in', 'in', 'inbound', 'purchase']);
+                    $isStockOut = in_array(strtolower($tx->type), ['stock_out', 'out', 'outbound', 'sale']);
+                    $sign = $isStockIn ? '+' : ($isStockOut ? '-' : ($tx->quantity >= 0 ? '+' : ''));
+                    $qtyDisplay = $sign . abs($tx->quantity);
+                    $price = $tx->unit_price ?? $tx->product?->unit_price ?? 0;
+                    $total = abs($tx->quantity) * $price;
+
+                    fputcsv($handle, [
+                        $tx->id,
+                        $tx->created_at ? $tx->created_at->format('Y-m-d H:i:s') : 'N/A',
+                        $tx->type_display,
+                        $tx->product?->name ?? 'N/A',
+                        $tx->product?->sku ?? 'N/A',
+                        $qtyDisplay,
+                        number_format($price, 2, '.', ''),
+                        number_format($total, 2, '.', ''),
+                        $tx->reference_number ?? '—',
+                        $tx->user?->name ?? 'System',
+                        ucfirst($tx->user?->role ?? 'system'),
+                        $tx->notes ?? '',
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        }, $fileName, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    /**
+     * Dedicated printable view of the audit trail ledger.
+     */
+    public function printIndex(Request $request): View
+    {
+        $this->authorize('viewAny', InventoryTransaction::class);
+
+        $query = InventoryTransaction::with(['product', 'user']);
+
+        if ($request->filled('product_id')) {
+            $query->where('product_id', $request->product_id);
+        }
+
+        if ($request->filled('type')) {
+            $type = $request->type;
+            if ($type === 'stock_in') {
+                $query->whereIn('type', ['stock_in', 'in', 'inbound', 'purchase']);
+            } elseif ($type === 'stock_out') {
+                $query->whereIn('type', ['stock_out', 'out', 'outbound', 'sale']);
+            } elseif ($type === 'adjustment') {
+                $query->where('type', 'adjustment');
+            } else {
+                $query->where('type', $type);
+            }
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $transactions = $query->latest()->get();
+
+        return view('transactions.print', compact('transactions'));
+    }
+
+    /**
+     * Dedicated printable transaction voucher / slip.
+     */
+    public function printShow(InventoryTransaction $transaction): View
+    {
+        $this->authorize('view', $transaction);
+
+        $transaction->load(['product.category', 'product.brand', 'user']);
+
+        return view('transactions.print-voucher', compact('transaction'));
+    }
+
+    /**
      * Remove the specified transaction (admin only) and reverse stock effect.
      */
     public function destroy(InventoryTransaction $transaction): RedirectResponse

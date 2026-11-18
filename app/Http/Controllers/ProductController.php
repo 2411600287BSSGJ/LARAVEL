@@ -149,6 +149,17 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified product.
      */
+    public function barcode(Product $product): View
+    {
+        $this->authorize('view', $product);
+        $product->load(['brand', 'category', 'supplier']);
+
+        return view('products.barcode', compact('product'));
+    }
+
+    /**
+     * Show the form for editing the specified product.
+     */
     public function edit(Product $product): View
     {
         $this->authorize('update', $product);

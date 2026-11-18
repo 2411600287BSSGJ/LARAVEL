@@ -22,6 +22,11 @@ class InventoryTransactionPolicy
         return true;
     }
 
+    public function update(User $user, InventoryTransaction $transaction): bool
+    {
+        return true;
+    }
+
     public function delete(User $user, InventoryTransaction $transaction): bool
     {
         return $user->isAdmin();

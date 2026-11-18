@@ -13,6 +13,7 @@ use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Auth; // <-- ADDED THIS
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -30,7 +31,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Products (CRUD Resource with show and barcode tag)
     Route::get('/products/{product}/barcode', [ProductController::class, 'barcode'])->name('products.barcode');
-    Route::resource('products', ProductController::class);
+    Route::resource('products', ProductController::class)->except(['destroy']);
 
     // Brands, Categories, Suppliers
     Route::resource('brands', BrandController::class)->except(['show']);
@@ -80,6 +81,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/export/valuation', [ReportController::class, 'exportValuation'])->name('reports.export.valuation');
     Route::get('/reports/export/supplier-performance', [ReportController::class, 'exportSupplierPerformance'])->name('reports.export.supplier-performance');
     Route::get('/exports/{table}', [ExportController::class, 'download'])->name('exports.download');
+
     // CSV specific shortcuts
     Route::get('export/products/csv', [ExportController::class, 'download'])->where('table', 'products')->name('export.products.csv');
     Route::get('export/purchase-orders/csv', [ExportController::class, 'download'])->where('table', 'purchase-orders')->name('export.purchase_orders.csv');
@@ -101,7 +103,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard/supplier-performance', [DashboardApiController::class, 'supplierPerformance'])->name('dashboard.supplier-performance');
         Route::get('/dashboard/reorder-alerts', [DashboardApiController::class, 'reorderAlerts'])->name('dashboard.reorder-alerts');
     });
-
     // Users (admin)
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.role');
@@ -109,3 +110,9 @@ Route::middleware(['auth'])->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+Route::fallback(function () {
+    return Auth::check() 
+        ? redirect()->route('dashboard')
+        : redirect()->route('login');
+});

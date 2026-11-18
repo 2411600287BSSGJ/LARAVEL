@@ -49,10 +49,8 @@ class InventoryTransactionObserver
 
             $product->save();
 
-            // Trigger low stock notification and automated reorder checking
+            // Check for automated replenishment when the product reaches its reorder point.
             if ($product->quantity <= $product->reorder_level) {
-                $this->triggerLowStockNotification($product);
-
                 try {
                     app(ReorderService::class)->checkReorderPoint($product);
                 } catch (\Throwable $e) {

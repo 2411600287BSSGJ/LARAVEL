@@ -48,6 +48,54 @@ class InventoryManagementTest extends TestCase
             'quantity' => 1,
             'status' => 'pending',
         ]);
+        $this->get(route('notifications.unread'))
+            ->assertOk()
+            ->assertJsonPath('count', 1)
+            ->assertJsonPath('notifications.0.data.product_name', 'Kettlebell');
+    }
+
+    public function test_low_stock_is_notified_when_created_and_again_each_time_it_reenters_low_stock(): void
+    {
+        $staff = User::factory()->create(['role' => 'staff']);
+
+        $product = Product::create([
+            'name' => 'Medicine Ball',
+            'sku' => 'MB-01',
+            'quantity' => 2,
+            'reorder_level' => 5,
+            'unit_price' => 20,
+        ]);
+
+        $this->assertSame(1, $staff->notifications()->count());
+
+        $product->update(['quantity' => 10]);
+        $this->assertSame(1, $staff->notifications()->count());
+
+        $product->update(['quantity' => 2]);
+        $this->assertSame(2, $staff->notifications()->count());
+    }
+
+    public function test_unread_notification_feed_includes_existing_low_stock_products_without_duplicates(): void
+    {
+        Product::create([
+            'name' => 'Resistance Band',
+            'sku' => 'RB-01',
+            'quantity' => 1,
+            'reorder_level' => 5,
+            'unit_price' => 8,
+        ]);
+        $staff = User::factory()->create(['role' => 'staff']);
+
+        $this->actingAs($staff)
+            ->get(route('notifications.unread'))
+            ->assertOk()
+            ->assertJsonPath('count', 1)
+            ->assertJsonPath('notifications.0.data.product_name', 'Resistance Band');
+
+        $this->get(route('notifications.unread'))
+            ->assertOk()
+            ->assertJsonPath('count', 1);
+        $this->assertSame(1, $staff->notifications()->count());
     }
 
     public function test_stock_out_cannot_reduce_inventory_below_zero(): void
@@ -143,6 +191,7 @@ class InventoryManagementTest extends TestCase
             ->get(route('products.index', ['search' => 'TP-', 'brand_id' => $brand->id, 'category_id' => $category->id, 'stock' => 'low']))
             ->assertOk()
             ->assertSee('Training Plate')
+            ->assertSee('Low Stock')
             ->assertDontSee('Rower');
     }
 

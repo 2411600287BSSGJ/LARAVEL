@@ -37,14 +37,16 @@
             <a class="btn btn-outline-primary" href="{{ route('products.edit', $product) }}">
                 <i class="bi bi-pencil me-1"></i>Edit
             </a>
-            <!-- Delete -->
-            <form method="POST" action="{{ route('products.destroy', $product) }}" class="d-inline" onsubmit="return confirm('Delete this product permanently?');">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-outline-danger">
-                    <i class="bi bi-trash me-1"></i>Delete
-                </button>
-            </form>
+            @if(Route::has('products.destroy'))
+                <!-- Delete -->
+                <form method="POST" action="{{ route('products.destroy', $product) }}" class="d-inline" onsubmit="return confirm('Delete this product permanently?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="bi bi-trash me-1"></i>Delete
+                    </button>
+                </form>
+            @endif
         </div>
     </div>
 

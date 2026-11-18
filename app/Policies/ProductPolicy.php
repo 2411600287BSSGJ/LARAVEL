@@ -27,8 +27,4 @@ class ProductPolicy
         return true;
     }
 
-    public function delete(User $user, Product $product): bool
-    {
-        return $user->isAdmin() || in_array($user->role, ['admin', 'manager', 'staff']);
-    }
 }

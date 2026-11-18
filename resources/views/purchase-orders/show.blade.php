@@ -20,8 +20,30 @@
                 <i class="bi bi-printer me-1"></i>Print Order
             </a>
 
+            <!-- Approve Button -->
+            @can('approve', $purchaseOrder)
+                @if($purchaseOrder->status === 'pending')
+                    <form method="POST" action="{{ route('purchase-orders.approve', $purchaseOrder) }}">
+                        @csrf
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check2-circle me-1"></i>Approve Order
+                        </button>
+                    </form>
+                @endif
+            @endcan
+
+            <!-- Send to Supplier Button -->
+            @if(in_array($purchaseOrder->status, ['pending', 'approved']) && auth()->user()->isAdmin())
+                <form method="POST" action="{{ route('purchase-orders.send', $purchaseOrder) }}">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-send me-1"></i>Mark as Sent
+                    </button>
+                </form>
+            @endif
+
             <!-- Cancel Button -->
-            @if($purchaseOrder->status === 'pending' && auth()->user()->isAdmin())
+            @if(in_array($purchaseOrder->status, ['pending', 'draft']) && auth()->user()->isAdmin())
                 <form method="POST" action="{{ route('purchase-orders.cancel', $purchaseOrder) }}" onsubmit="return confirm('Cancel this purchase order?');">
                     @csrf
                     <button type="submit" class="btn btn-outline-danger">

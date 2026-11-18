@@ -19,6 +19,7 @@
                 <li><a class="dropdown-item" href="{{ route('reports.export.stock-movement') }}"><i class="bi bi-arrow-left-right me-2"></i>Stock Movements CSV</a></li>
                 <li><a class="dropdown-item" href="{{ route('reports.export.low-stock') }}"><i class="bi bi-exclamation-triangle me-2"></i>Low Stock Report CSV</a></li>
                 <li><a class="dropdown-item" href="{{ route('reports.export.valuation') }}"><i class="bi bi-cash-stack me-2"></i>Inventory Valuation CSV</a></li>
+                <li><a class="dropdown-item" href="{{ route('reports.export.supplier-performance') }}"><i class="bi bi-truck me-2"></i>Supplier Performance CSV</a></li>
             </ul>
         </div>
     </div>
@@ -69,6 +70,11 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-bold py-3" id="valuation-tab" data-bs-toggle="tab" data-bs-target="#valuation-pane" type="button" role="tab">
                 <i class="bi bi-cash-stack text-success me-1"></i>Inventory Valuation Report
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold py-3" id="supplier-tab" data-bs-toggle="tab" data-bs-target="#supplier-pane" type="button" role="tab">
+                <i class="bi bi-truck text-info me-1"></i>Supplier Performance
             </button>
         </li>
     </ul>
@@ -285,6 +291,93 @@
                                 <th></th>
                             </tr>
                         </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- 4. Supplier Performance Report -->
+        <div class="tab-pane fade" id="supplier-pane" role="tabpanel">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-truck text-info me-2"></i>Supplier Performance Report</h5>
+                        <small class="text-muted">On-time delivery rates and order fulfillment summary</small>
+                    </div>
+                    <a href="{{ route('reports.export.supplier-performance') }}" class="btn btn-sm btn-info text-white">
+                        <i class="bi bi-download me-1"></i>Export Supplier Performance CSV
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Supplier Name</th>
+                                <th>Contact Person</th>
+                                <th class="text-center">Total Orders</th>
+                                <th class="text-center">Lead Time (days)</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-end">Min. Order (₱)</th>
+                                <th>Payment Terms</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($suppliers ?? [] as $supplier)
+                                <tr>
+                                    <td>
+                                        <a href="{{ route('suppliers.show', $supplier) }}" class="fw-bold text-decoration-none text-dark">
+                                            {{ $supplier->name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div>{{ $supplier->contact_person }}</div>
+                                        <small class="text-muted">{{ $supplier->email }}</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary-subtle text-primary">{{ $supplier->purchase_orders_count ?? 0 }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if($supplier->lead_time_days)
+                                            <span class="badge bg-info-subtle text-info">{{ $supplier->lead_time_days }} days</span>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-center">
+                                        @if($supplier->active)
+                                            <span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle me-1"></i>Active</span>
+                                        @else
+                                            <span class="badge bg-secondary-subtle text-secondary"><i class="bi bi-dash-circle me-1"></i>Inactive</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-end">
+                                        @if($supplier->minimum_order_amount)
+                                            ₱{{ number_format($supplier->minimum_order_amount, 2) }}
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </td>
+                                    <td><span class="badge bg-secondary-subtle text-secondary">{{ $supplier->payment_terms ?? 'N/A' }}</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ route('suppliers.show', $supplier) }}" class="btn btn-outline-primary" title="View">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ route('suppliers.edit', $supplier) }}" class="btn btn-outline-secondary" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="text-center py-5 text-muted">
+                                        <i class="bi bi-truck display-6 d-block mb-2 opacity-25"></i>
+                                        No suppliers found. <a href="{{ route('suppliers.create') }}">Add your first supplier</a>.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
                     </table>
                 </div>
             </div>

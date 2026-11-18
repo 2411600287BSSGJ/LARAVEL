@@ -22,9 +22,19 @@ class PurchaseOrderPolicy
         return true;
     }
 
+    public function update(User $user, PurchaseOrder $purchaseOrder): bool
+    {
+        return $user->isAdmin() || in_array($purchaseOrder->status, ['draft', 'pending']);
+    }
+
+    public function approve(User $user, PurchaseOrder $purchaseOrder): bool
+    {
+        return $user->isAdmin() && in_array($purchaseOrder->status, ['draft', 'pending']);
+    }
+
     public function receive(User $user, PurchaseOrder $purchaseOrder): bool
     {
-        return $user->isAdmin() && $purchaseOrder->status === 'pending';
+        return $user->isAdmin() && in_array($purchaseOrder->status, ['pending', 'approved', 'sent']);
     }
 
     public function cancel(User $user, PurchaseOrder $purchaseOrder): bool

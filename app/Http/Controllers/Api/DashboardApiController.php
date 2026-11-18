@@ -97,4 +97,105 @@ class DashboardApiController extends Controller
 
         return response()->json($transactions);
     }
+
+    /**
+     * GET /api/dashboard/pending-orders
+     */
+    public function pendingOrders(): JsonResponse
+    {
+        $orders = \App\Models\PurchaseOrder::with(['product', 'supplier'])
+            ->where('status', 'pending')
+            ->latest()
+            ->take(10)
+            ->get()
+            ->map(function ($po) {
+                return [
+                    'id' => $po->id,
+                    'reference' => $po->reference,
+                    'product_name' => $po->product?->name ?? 'Unassigned',
+                    'supplier_name' => $po->supplier?->name ?? 'Unassigned',
+                    'quantity' => $po->quantity,
+                    'status' => $po->status,
+                    'url' => route('purchase-orders.show', $po),
+                ];
+            });
+
+        return response()->json([
+            'count' => \App\Models\PurchaseOrder::where('status', 'pending')->count(),
+            'orders' => $orders,
+        ]);
+    }
+
+    /**
+     * GET /api/dashboard/recent-orders
+     */
+    public function recentOrders(): JsonResponse
+    {
+        $orders = \App\Models\PurchaseOrder::with(['product', 'supplier'])
+            ->latest()
+            ->take(10)
+            ->get()
+            ->map(function ($po) {
+                return [
+                    'id' => $po->id,
+                    'reference' => $po->reference,
+                    'product_name' => $po->product?->name ?? 'Unassigned',
+                    'supplier_name' => $po->supplier?->name ?? 'Unassigned',
+                    'quantity' => $po->quantity,
+                    'status' => $po->status,
+                    'url' => route('purchase-orders.show', $po),
+                ];
+            });
+
+        return response()->json($orders);
+    }
+
+    /**
+     * GET /api/dashboard/supplier-performance
+     */
+    public function supplierPerformance(): JsonResponse
+    {
+        $suppliers = \App\Models\Supplier::withCount('purchaseOrders')
+            ->orderBy('name')
+            ->get()
+            ->map(function ($s) {
+                return [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'orders_count' => $s->purchase_orders_count,
+                    'lead_time_days' => $s->lead_time_days,
+                    'performance_score' => $s->calculatePerformance(),
+                    'url' => route('suppliers.show', $s),
+                ];
+            })
+            ->sortByDesc('performance_score')
+            ->values();
+
+        return response()->json($suppliers);
+    }
+
+    /**
+     * GET /api/dashboard/reorder-alerts
+     */
+    public function reorderAlerts(): JsonResponse
+    {
+        $products = Product::with(['category', 'supplier'])
+            ->whereColumn('quantity', '<=', 'reorder_level')
+            ->orderBy('quantity', 'asc')
+            ->take(10)
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'sku' => $p->sku,
+                    'quantity' => $p->quantity,
+                    'reorder_level' => $p->reorder_level,
+                    'supplier_name' => $p->supplier_name,
+                    'url' => route('products.show', $p),
+                ];
+            });
+
+        return response()->json($products);
+    }
 }

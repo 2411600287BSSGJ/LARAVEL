@@ -134,6 +134,51 @@ class PurchaseOrderController extends Controller
     }
 
     /**
+     * Approve a pending purchase order.
+     */
+    public function approve(PurchaseOrder $purchaseOrder): RedirectResponse
+    {
+        $this->authorize('approve', $purchaseOrder);
+        abort_unless(in_array($purchaseOrder->status, ['draft', 'pending']), 409, 'Only pending orders can be approved.');
+
+        $purchaseOrder->update([
+            'status' => 'approved',
+            'approved_by' => auth()->id(),
+        ]);
+
+        return redirect()->route('purchase-orders.show', $purchaseOrder)
+            ->with('success', "Purchase order [{$purchaseOrder->reference}] approved successfully.");
+    }
+
+    /**
+     * Reject a pending purchase order.
+     */
+    public function reject(PurchaseOrder $purchaseOrder): RedirectResponse
+    {
+        abort_unless(auth()->user()->isAdmin(), 403, 'Only administrators can reject purchase orders.');
+        abort_unless(in_array($purchaseOrder->status, ['draft', 'pending']), 409, 'Only pending orders can be rejected.');
+
+        $purchaseOrder->update(['status' => 'rejected']);
+
+        return redirect()->route('purchase-orders.show', $purchaseOrder)
+            ->with('info', "Purchase order [{$purchaseOrder->reference}] has been marked as rejected.");
+    }
+
+    /**
+     * Mark order as sent to supplier.
+     */
+    public function send(PurchaseOrder $purchaseOrder): RedirectResponse
+    {
+        abort_unless(auth()->user()->isAdmin(), 403, 'Only administrators can mark purchase orders as sent.');
+        abort_unless(in_array($purchaseOrder->status, ['pending', 'approved']), 409, 'Order must be pending or approved before sending.');
+
+        $purchaseOrder->update(['status' => 'sent']);
+
+        return redirect()->route('purchase-orders.show', $purchaseOrder)
+            ->with('success', "Purchase order [{$purchaseOrder->reference}] has been marked as sent to supplier.");
+    }
+
+    /**
      * Cancel a pending purchase order.
      */
     public function cancel(PurchaseOrder $purchaseOrder): RedirectResponse

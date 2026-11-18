@@ -152,4 +152,62 @@ class InventoryEnhancementsTest extends TestCase
         $response->assertSee('Olympic Weight Plate 20kg');
         $response->assertSee('₱2,500.00');
     }
+
+    public function test_admin_can_approve_purchase_order(): void
+    {
+        $po = PurchaseOrder::create([
+            'reference' => 'PO-APPROVE-TEST',
+            'product_id' => $this->product->id,
+            'supplier_id' => $this->supplier->id,
+            'quantity' => 15,
+            'status' => 'pending',
+            'created_by' => $this->admin->id,
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('purchase-orders.approve', $po));
+        $response->assertRedirect();
+        $this->assertSame('approved', $po->fresh()->status);
+        $this->assertEquals($this->admin->id, $po->fresh()->approved_by);
+    }
+
+    public function test_admin_can_reject_purchase_order(): void
+    {
+        $po = PurchaseOrder::create([
+            'reference' => 'PO-REJECT-TEST',
+            'product_id' => $this->product->id,
+            'supplier_id' => $this->supplier->id,
+            'quantity' => 15,
+            'status' => 'pending',
+            'created_by' => $this->admin->id,
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('purchase-orders.reject', $po), [
+            'reason' => 'Duplicate order',
+        ]);
+        $response->assertRedirect();
+        $this->assertSame('rejected', $po->fresh()->status);
+    }
+
+    public function test_admin_can_mark_purchase_order_as_sent(): void
+    {
+        $po = PurchaseOrder::create([
+            'reference' => 'PO-SEND-TEST',
+            'product_id' => $this->product->id,
+            'supplier_id' => $this->supplier->id,
+            'quantity' => 15,
+            'status' => 'approved',
+            'created_by' => $this->admin->id,
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('purchase-orders.send', $po));
+        $response->assertRedirect();
+        $this->assertSame('sent', $po->fresh()->status);
+    }
+
+    public function test_can_export_supplier_performance_report(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('reports.export.supplier-performance'));
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+    }
 }

@@ -305,6 +305,22 @@
             </div>
         </div>
     </div>
+
+    <!-- Procurement & Supplier Performance Widgets (Laboratory 7) -->
+    <div class="row g-4 mt-2">
+        <div class="col-lg-6 col-xl-3">
+            @include('widgets.pending-orders')
+        </div>
+        <div class="col-lg-6 col-xl-3">
+            @include('widgets.reorder-alerts')
+        </div>
+        <div class="col-lg-6 col-xl-3">
+            @include('widgets.recent-orders')
+        </div>
+        <div class="col-lg-6 col-xl-3">
+            @include('widgets.supplier-performance')
+        </div>
+    </div>
 @endsection
 
 @push('scripts')

@@ -67,6 +67,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/purchase-orders', [PurchaseOrderController::class, 'store'])->name('purchase-orders.store');
     Route::get('/purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->name('purchase-orders.show');
     Route::post('/purchase-orders/{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])->name('purchase-orders.receive');
+    Route::post('/purchase-orders/{purchaseOrder}/approve', [PurchaseOrderController::class, 'approve'])->name('purchase-orders.approve');
+    Route::post('/purchase-orders/{purchaseOrder}/reject', [PurchaseOrderController::class, 'reject'])->name('purchase-orders.reject');
+    Route::post('/purchase-orders/{purchaseOrder}/send', [PurchaseOrderController::class, 'send'])->name('purchase-orders.send');
     Route::post('/purchase-orders/{purchaseOrder}/cancel', [PurchaseOrderController::class, 'cancel'])->name('purchase-orders.cancel');
     Route::get('/purchase-orders/{purchaseOrder}/print', [PurchaseOrderController::class, 'printOrder'])->name('purchase-orders.print');
 
@@ -75,6 +78,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/export/stock-movement', [ReportController::class, 'exportStockMovement'])->name('reports.export.stock-movement');
     Route::get('/reports/export/low-stock', [ReportController::class, 'exportLowStock'])->name('reports.export.low-stock');
     Route::get('/reports/export/valuation', [ReportController::class, 'exportValuation'])->name('reports.export.valuation');
+    Route::get('/reports/export/supplier-performance', [ReportController::class, 'exportSupplierPerformance'])->name('reports.export.supplier-performance');
     Route::get('/exports/{table}', [ExportController::class, 'download'])->name('exports.download');
     // CSV specific shortcuts
     Route::get('export/products/csv', [ExportController::class, 'download'])->where('table', 'products')->name('export.products.csv');
@@ -92,6 +96,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard/stats', [DashboardApiController::class, 'stats'])->name('dashboard.stats');
         Route::get('/products/low-stock', [DashboardApiController::class, 'lowStock'])->name('products.low-stock');
         Route::get('/transactions/recent', [DashboardApiController::class, 'recentTransactions'])->name('transactions.recent');
+        Route::get('/dashboard/pending-orders', [DashboardApiController::class, 'pendingOrders'])->name('dashboard.pending-orders');
+        Route::get('/dashboard/recent-orders', [DashboardApiController::class, 'recentOrders'])->name('dashboard.recent-orders');
+        Route::get('/dashboard/supplier-performance', [DashboardApiController::class, 'supplierPerformance'])->name('dashboard.supplier-performance');
+        Route::get('/dashboard/reorder-alerts', [DashboardApiController::class, 'reorderAlerts'])->name('dashboard.reorder-alerts');
     });
 
     // Users (admin)

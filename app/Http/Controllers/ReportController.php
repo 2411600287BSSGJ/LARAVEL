@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\InventoryTransaction;
 use App\Models\Product;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
@@ -62,6 +63,7 @@ class ReportController extends Controller
             'valuationByCategory' => $valuationByCategory,
             'startDate' => $startDate,
             'endDate' => $endDate,
+            'suppliers' => Supplier::withCount('purchaseOrders')->orderBy('name')->get(),
         ]);
     }
 
@@ -173,6 +175,62 @@ class ReportController extends Controller
             fclose($handle);
         }, $fileName, [
             'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
+        ]);
+    }
+
+    /**
+     * Export Supplier Performance Metrics report to CSV.
+     */
+    public function exportSupplierPerformance(): StreamedResponse
+    {
+        $fileName = 'supplier_performance_' . now()->format('Ymd_His') . '.csv';
+
+        return response()->streamDownload(function () {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF)); // BOM
+            fputcsv($handle, [
+                'Supplier ID',
+                'Supplier Name',
+                'Contact Person',
+                'Email',
+                'Phone',
+                'Lead Time (Days)',
+                'Payment Terms',
+                'Total Orders Placed',
+                'Orders Fulfilled',
+                'Fulfillment Rating (%)',
+                'Total Order Value (PHP)',
+            ]);
+
+            \App\Models\Supplier::with('purchaseOrders')
+                ->orderBy('name')
+                ->chunk(100, function ($suppliers) use ($handle) {
+                    foreach ($suppliers as $s) {
+                        $totalOrders = $s->purchaseOrders->count();
+                        $fulfilled = $s->purchaseOrders->where('status', 'received')->count();
+                        $rate = $s->calculatePerformance();
+                        $totalVal = $s->total_orders_value;
+
+                        fputcsv($handle, [
+                            $s->id,
+                            $s->name,
+                            $s->contact_person ?? '—',
+                            $s->email ?? '—',
+                            $s->phone ?? '—',
+                            $s->lead_time_days,
+                            $s->payment_terms ?? 'Net 30',
+                            $totalOrders,
+                            $fulfilled,
+                            number_format($rate, 1) . '%',
+                            number_format($totalVal, 2, '.', ''),
+                        ]);
+                    }
+                });
+
+            fclose($handle);
+        }, $fileName, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
         ]);
     }

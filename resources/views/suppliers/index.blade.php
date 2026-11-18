@@ -23,6 +23,49 @@
         </div>
     </div>
 
+    <!-- Search & Filter Card -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-3">
+            <form method="GET" action="{{ route('suppliers.index') }}" class="row g-2 align-items-center">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text"
+                               name="search"
+                               class="form-control border-start-0"
+                               placeholder="Search suppliers by name, contact, email, or phone..."
+                               value="{{ request('search') }}">
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <select name="active" class="form-select">
+                        <option value="">-- All Statuses --</option>
+                        <option value="1" @selected(request('active') === '1')>Active Suppliers Only</option>
+                        <option value="0" @selected(request('active') === '0')>Inactive Suppliers Only</option>
+                    </select>
+                </div>
+                <div class="col-sm-6 col-md-2">
+                    <select name="sort" class="form-select">
+                        <option value="name" @selected(request('sort') === 'name')>Sort: Name (A-Z)</option>
+                        <option value="lead_time_days" @selected(request('sort') === 'lead_time_days')>Sort: Lead Time</option>
+                        <option value="purchase_orders_count" @selected(request('sort') === 'purchase_orders_count')>Sort: Most Orders</option>
+                        <option value="created_at" @selected(request('sort') === 'created_at')>Sort: Newest First</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-fill">
+                        <i class="bi bi-funnel me-1"></i>Filter
+                    </button>
+                    @if(request()->hasAny(['search', 'active', 'sort']))
+                        <a href="{{ route('suppliers.index') }}" class="btn btn-outline-secondary" title="Clear Filters">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    @endif
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Suppliers Table Card -->
     <div class="card shadow-sm border-0">
         <div class="table-responsive">

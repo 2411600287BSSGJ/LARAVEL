@@ -10,11 +10,25 @@ use Illuminate\View\View;
 
 class SupplierController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorize('viewAny', Supplier::class);
 
-        return view('suppliers.index', ['suppliers' => Supplier::withCount('purchaseOrders')->orderBy('name')->paginate(15)]);
+        $query = Supplier::withCount('purchaseOrders')
+            ->filter($request->only(['search', 'active']));
+
+        // Sorting options
+        $sort = $request->get('sort', 'name');
+        $direction = $request->get('direction', 'asc');
+        if (in_array($sort, ['name', 'lead_time_days', 'purchase_orders_count', 'created_at'])) {
+            $query->orderBy($sort, $direction === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('name');
+        }
+
+        $suppliers = $query->paginate(15)->withQueryString();
+
+        return view('suppliers.index', compact('suppliers'));
     }
 
     public function show(Supplier $supplier): View
@@ -61,9 +75,16 @@ class SupplierController extends Controller
     public function destroy(Supplier $supplier): RedirectResponse
     {
         $this->authorize('delete', $supplier);
+
+        // Check for pending purchase orders before deletion
+        if ($supplier->purchaseOrders()->where('status', 'pending')->exists()) {
+            return redirect()->route('suppliers.index')
+                ->with('error', "Cannot delete supplier '{$supplier->name}': There are pending purchase orders awaiting fulfillment.");
+        }
+
         $supplier->delete();
 
-        return redirect()->route('suppliers.index')->with('success', 'Supplier archived.');
+        return redirect()->route('suppliers.index')->with('success', "Supplier '{$supplier->name}' has been archived.");
     }
 
     private function validateSupplier(Request $request, ?Supplier $supplier = null): array
@@ -74,7 +95,10 @@ class SupplierController extends Controller
             'email' => ['nullable', 'email', 'max:255', Rule::unique('suppliers', 'email')->ignore($supplier)],
             'phone' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:255'],
+            'payment_terms' => ['nullable', 'string', 'max:100'],
             'lead_time_days' => ['required', 'integer', 'min:0'],
+            'minimum_order_amount' => ['nullable', 'numeric', 'min:0'],
+            'active' => ['nullable', 'boolean'],
         ]);
     }
 }

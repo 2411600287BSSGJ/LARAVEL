@@ -125,10 +125,10 @@
                 <!-- Unit Price -->
                 <div class="col-md-4">
                     <label for="unit_price" class="form-label fw-semibold">
-                        Unit Price ($) <span class="text-danger">*</span>
+                        Unit Price (₱) <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
-                        <span class="input-group-text">$</span>
+                        <span class="input-group-text">₱</span>
                         <input type="number"
                                min="0"
                                step="0.01"
@@ -139,7 +139,7 @@
                                value="{{ old('unit_price', $product->unit_price ?? '') }}"
                                required>
                     </div>
-                    <small class="text-muted">Per unit selling or cost price</small>
+                    <small class="text-muted">Per unit selling or cost price in Philippine Peso (₱)</small>
                     @error('unit_price')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

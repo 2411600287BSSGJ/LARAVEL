@@ -105,8 +105,8 @@
                         <th style="width: 45%;">Item Description</th>
                         <th style="width: 15%;">SKU</th>
                         <th style="width: 10%;" class="text-center">Qty</th>
-                        <th style="width: 12%;" class="text-end">Unit Price</th>
-                        <th style="width: 13%;" class="text-end">Total Amount</th>
+                        <th style="width: 12%;" class="text-end">Unit Price (₱)</th>
+                        <th style="width: 13%;" class="text-end">Total Amount (₱)</th>
                     </tr>
                 </thead>
                 <tbody>

@@ -13,7 +13,7 @@
             <th>Category</th>
             <th>Quantity</th>
             <th>Reorder Level</th>
-            <th>Unit Price</th>
+            <th>Unit Price (₱)</th>
             <th>Supplier</th>
         </tr>
         </thead>
@@ -26,7 +26,7 @@
                 <td>{{ $product->category }}</td>
                 <td>{{ $product->quantity }}</td>
                 <td>{{ $product->reorder_level }}</td>
-                <td>{{ number_format($product->unit_price, 2) }}</td>
+                <td>₱{{ number_format($product->unit_price, 2) }}</td>
                 <td>{{ $product->supplier }}</td>
             </tr>
         @endforeach

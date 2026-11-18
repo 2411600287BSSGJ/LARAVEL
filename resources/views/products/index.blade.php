@@ -75,7 +75,7 @@
                         <th>Supplier</th>
                         <th class="text-center">Current Stock</th>
                         <th class="text-center">Reorder Level</th>
-                        <th class="text-end">Unit Price</th>
+                        <th class="text-end">Unit Price (₱)</th>
                         <th class="text-center">Status</th>
                         <th class="text-end" style="width: 15%;">Actions</th>
                     </tr>

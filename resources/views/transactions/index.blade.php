@@ -150,7 +150,7 @@
                         <th style="width: 22%;">Product Name</th>
                         <th>Type</th>
                         <th class="text-center">Quantity</th>
-                        <th>Unit Price</th>
+                        <th>Unit Price (₱)</th>
                         <th>Total (₱)</th>
                         <th>Reference #</th>
                         <th>Encoded By</th>

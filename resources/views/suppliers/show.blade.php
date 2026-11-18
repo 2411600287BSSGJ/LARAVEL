@@ -134,7 +134,7 @@
                                 <th>Product Name</th>
                                 <th>Category</th>
                                 <th class="text-center">Stock</th>
-                                <th class="text-end">Unit Price</th>
+                                <th class="text-end">Unit Price (₱)</th>
                                 <th class="text-end">Action</th>
                             </tr>
                         </thead>

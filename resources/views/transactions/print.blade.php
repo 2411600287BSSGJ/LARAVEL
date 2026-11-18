@@ -81,7 +81,7 @@
                     <th style="width: 20%;">Product Details</th>
                     <th style="width: 11%;">Movement</th>
                     <th style="width: 8%;" class="text-center">Qty</th>
-                    <th style="width: 10%;" class="text-end">Unit Price</th>
+                    <th style="width: 10%;" class="text-end">Unit Price (₱)</th>
                     <th style="width: 11%;" class="text-end">Total (₱)</th>
                     <th style="width: 11%;">Reference</th>
                     <th style="width: 10%;">Encoded By</th>

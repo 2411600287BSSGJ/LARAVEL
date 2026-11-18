@@ -29,7 +29,7 @@
             <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
                 <div class="card-body p-3">
                     <small class="text-muted text-uppercase fw-semibold d-block">Total Inventory Valuation</small>
-                    <h3 class="fw-bold text-success mb-1 mt-1">${{ number_format($totalInventoryValue, 2) }}</h3>
+                    <h3 class="fw-bold text-success mb-1 mt-1">₱{{ number_format($totalInventoryValue, 2) }}</h3>
                     <small class="text-muted">{{ number_format($totalItemsCount) }} total items across all categories</small>
                 </div>
             </div>
@@ -102,7 +102,7 @@
                                 <th>Product / SKU</th>
                                 <th>Type</th>
                                 <th class="text-center">Quantity</th>
-                                <th>Unit Price</th>
+                                <th>Unit Price (₱)</th>
                                 <th>Reference</th>
                                 <th>Authorized By</th>
                                 <th>Notes</th>
@@ -130,7 +130,7 @@
                                     <td class="text-center">
                                         <strong class="{{ $colorClass }} fs-6">{{ $sign }}{{ abs($tx->quantity) }}</strong>
                                     </td>
-                                    <td>${{ number_format($tx->unit_price ?? $tx->product?->unit_price ?? 0, 2) }}</td>
+                                    <td>₱{{ number_format($tx->unit_price ?? $tx->product?->unit_price ?? 0, 2) }}</td>
                                     <td><code>{{ $tx->reference_number ?? '—' }}</code></td>
                                     <td><small>{{ $tx->user?->name ?? 'System' }}</small></td>
                                     <td><small class="text-muted">{{ $tx->notes ?: '—' }}</small></td>
@@ -172,7 +172,7 @@
                                 <th>Category</th>
                                 <th class="text-center">Current Stock</th>
                                 <th class="text-center">Reorder Point</th>
-                                <th>Unit Price</th>
+                                <th>Unit Price (₱)</th>
                                 <th>Preferred Supplier</th>
                                 <th>Status</th>
                                 <th class="text-end">Action</th>
@@ -192,7 +192,7 @@
                                         <strong class="fs-6 text-{{ $p->quantity == 0 ? 'danger' : 'warning' }}">{{ $p->quantity }}</strong>
                                     </td>
                                     <td class="text-center">{{ $p->reorder_level }}</td>
-                                    <td>${{ number_format($p->unit_price, 2) }}</td>
+                                    <td>₱{{ number_format($p->unit_price, 2) }}</td>
                                     <td>{{ $p->supplier_name }}</td>
                                     <td>
                                         <span class="badge bg-{{ $p->stock_status_color }}">
@@ -228,7 +228,7 @@
                         <div class="card shadow-sm border-0 h-100 bg-white">
                             <div class="card-body p-3">
                                 <small class="text-muted text-uppercase fw-semibold d-block">{{ $cat['category'] }}</small>
-                                <strong class="fs-5 text-dark d-block mt-1">${{ number_format($cat['total_value'], 2) }}</strong>
+                                <strong class="fs-5 text-dark d-block mt-1">₱{{ number_format($cat['total_value'], 2) }}</strong>
                                 <small class="text-muted">{{ $cat['total_quantity'] }} units ({{ $cat['count'] }} SKUs)</small>
                             </div>
                         </div>
@@ -254,8 +254,8 @@
                                 <th>SKU</th>
                                 <th>Category</th>
                                 <th class="text-center">Quantity on Hand</th>
-                                <th class="text-end">Unit Price</th>
-                                <th class="text-end">Total Valuation</th>
+                                <th class="text-end">Unit Price (₱)</th>
+                                <th class="text-end">Total Valuation (₱)</th>
                                 <th>Supplier</th>
                             </tr>
                         </thead>
@@ -270,8 +270,8 @@
                                     <td><code>{{ $item->sku }}</code></td>
                                     <td><span class="badge bg-secondary-subtle text-secondary">{{ $item->category_name }}</span></td>
                                     <td class="text-center"><strong>{{ $item->quantity }}</strong></td>
-                                    <td class="text-end">${{ number_format($item->unit_price, 2) }}</td>
-                                    <td class="text-end fw-bold text-success">${{ number_format($item->total_value, 2) }}</td>
+                                    <td class="text-end">₱{{ number_format($item->unit_price, 2) }}</td>
+                                    <td class="text-end fw-bold text-success">₱{{ number_format($item->total_value, 2) }}</td>
                                     <td><small class="text-muted">{{ $item->supplier_name }}</small></td>
                                 </tr>
                             @endforeach
@@ -281,7 +281,7 @@
                                 <th colspan="3" class="fs-6">Grand Total Valuation</th>
                                 <th class="text-center fs-6">{{ number_format($totalItemsCount) }} units</th>
                                 <th></th>
-                                <th class="text-end fs-5 text-success fw-bold">${{ number_format($totalInventoryValue, 2) }}</th>
+                                <th class="text-end fs-5 text-success fw-bold">₱{{ number_format($totalInventoryValue, 2) }}</th>
                                 <th></th>
                             </tr>
                         </tfoot>

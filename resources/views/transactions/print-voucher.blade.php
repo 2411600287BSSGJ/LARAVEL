@@ -104,8 +104,8 @@
                         <th>Product Name</th>
                         <th>SKU</th>
                         <th class="text-center">Quantity</th>
-                        <th class="text-end">Unit Price</th>
-                        <th class="text-end">Total Value</th>
+                        <th class="text-end">Unit Price (₱)</th>
+                        <th class="text-end">Total Value (₱)</th>
                     </tr>
                 </thead>
                 <tbody>

@@ -86,7 +86,7 @@ Route::middleware(['auth'])->group(function () {
 require __DIR__.'/auth.php';
 
 Route::fallback(function () {
-    return Auth::check() // <-- CHANGED TO Auth::check()
+    return Auth::check() 
         ? redirect()->route('dashboard')
         : redirect()->route('login');
 });

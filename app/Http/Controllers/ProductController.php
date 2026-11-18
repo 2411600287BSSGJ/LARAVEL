@@ -28,8 +28,11 @@ class ProductController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        // Gym inventory default categories
-        $defaultCategories = ['Free Weights', 'Cardio Equipment', 'Strength Machines', 'Fitness Accessories', 'Supplements & Nutrition', 'Recovery & Mobility'];
+        // Default categories (Gym Equipment & Hardware Store standards)
+        $defaultCategories = [
+            'Free Weights', 'Cardio Equipment', 'Strength Machines', 'Fitness Accessories', 'Supplements & Nutrition', 'Recovery & Mobility',
+            'Lumber', 'Hardware', 'Tools', 'Electrical', 'Plumbing', 'Paint',
+        ];
         $categories = Category::orderBy('name')->pluck('name')->toArray();
         $allCategories = array_values(array_unique(array_merge($defaultCategories, $categories)));
 
@@ -215,7 +218,10 @@ class ProductController extends Controller
      */
     private function formOptions(): array
     {
-        $defaultCategories = ['Free Weights', 'Cardio Equipment', 'Strength Machines', 'Fitness Accessories', 'Supplements & Nutrition', 'Recovery & Mobility'];
+        $defaultCategories = [
+            'Free Weights', 'Cardio Equipment', 'Strength Machines', 'Fitness Accessories', 'Supplements & Nutrition', 'Recovery & Mobility',
+            'Lumber', 'Hardware', 'Tools', 'Electrical', 'Plumbing', 'Paint',
+        ];
         $dbCategories = Category::orderBy('name')->pluck('name')->toArray();
         $allCategories = array_values(array_unique(array_merge($defaultCategories, $dbCategories)));
 

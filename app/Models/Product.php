@@ -70,6 +70,11 @@ class Product extends Model
         return $this->hasMany(PurchaseOrder::class);
     }
 
+    public function salesOrders(): HasMany
+    {
+        return $this->hasMany(SalesOrder::class);
+    }
+
     /**
      * Business logic helper: check if product is low stock.
      */
@@ -202,5 +207,35 @@ class Product extends Model
                     $query->whereColumn('quantity', '>', 'reorder_level');
                 }
             });
+    }
+
+    /**
+     * Generate a unique SKU code formatted for gym equipment and supplements.
+     * E.g. GYM-FW-742, GYM-CRD-318, GYM-SUP-509
+     */
+    public static function generateUniqueSku(?string $category = null): string
+    {
+        $prefixes = [
+            'Free Weights' => 'FW',
+            'Cardio Equipment' => 'CRD',
+            'Strength Machines' => 'STR',
+            'Fitness Accessories' => 'ACC',
+            'Supplements & Nutrition' => 'SUP',
+            'Recovery & Mobility' => 'REC',
+        ];
+
+        $code = 'EQP';
+        if ($category && isset($prefixes[$category])) {
+            $code = $prefixes[$category];
+        } elseif ($category) {
+            $cleaned = strtoupper(preg_replace('/[^A-Za-z]/', '', $category));
+            $code = substr($cleaned, 0, 3) ?: 'ITM';
+        }
+
+        do {
+            $sku = sprintf('GYM-%s-%03d', $code, mt_rand(100, 999));
+        } while (static::withTrashed()->where('sku', $sku)->exists());
+
+        return $sku;
     }
 }

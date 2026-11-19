@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
@@ -21,6 +22,9 @@ class PurchaseOrder extends Model
         'created_by',
         'approved_by',
         'received_at',
+        'subtotal',
+        'tax',
+        'total_amount',
     ];
 
     protected function casts(): array
@@ -28,7 +32,28 @@ class PurchaseOrder extends Model
         return [
             'quantity' => 'integer',
             'received_at' => 'datetime',
+            'subtotal' => 'decimal:2',
+            'tax' => 'decimal:2',
+            'total_amount' => 'decimal:2',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (PurchaseOrder $purchaseOrder): void {
+            $product = Product::find($purchaseOrder->product_id);
+
+            $purchaseOrder->items()->create([
+                'product_id' => $purchaseOrder->product_id,
+                'quantity' => $purchaseOrder->quantity,
+                'unit_price' => $product?->unit_price ?? 0,
+            ]);
+        });
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(PurchaseOrderItem::class);
     }
 
     public function product(): BelongsTo
@@ -118,7 +143,42 @@ class PurchaseOrder extends Model
      */
     public function calculateTotal(): float
     {
-        return (float) ($this->quantity * ($this->product?->unit_price ?? 0));
+        if ($this->relationLoaded('items') && $this->items->isNotEmpty()) {
+            return (float) $this->items->sum(
+                fn (PurchaseOrderItem $item) => $item->quantity * (float) $item->unit_price
+            );
+        }
+
+        $itemsTotal = $this->items()
+            ->selectRaw('SUM(quantity * unit_price) as total')
+            ->value('total');
+
+        return $itemsTotal !== null
+            ? (float) $itemsTotal
+            : (float) ($this->quantity * ($this->product?->unit_price ?? 0));
+    }
+
+    public function getItemsSummaryAttribute(): string
+    {
+        $items = $this->relationLoaded('items')
+            ? $this->items
+            : $this->items()->with('product')->get();
+
+        return $items->map(
+            fn (PurchaseOrderItem $item) => ($item->product?->name ?? 'Archived Product').' x '.$item->quantity
+        )->implode('; ');
+    }
+
+    public function getTotalQuantityAttribute(): int
+    {
+        return $this->relationLoaded('items')
+            ? (int) $this->items->sum('quantity')
+            : (int) $this->items()->sum('quantity');
+    }
+
+    public function getEstimatedTotalAttribute(): float
+    {
+        return $this->calculateTotal();
     }
 
     /**

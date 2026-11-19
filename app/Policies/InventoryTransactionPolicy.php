@@ -9,12 +9,12 @@ class InventoryTransactionPolicy
 {
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->isAdmin();
     }
 
     public function view(User $user, InventoryTransaction $transaction): bool
     {
-        return true;
+        return $user->isAdmin();
     }
 
     public function create(User $user): bool
@@ -24,7 +24,7 @@ class InventoryTransactionPolicy
 
     public function update(User $user, InventoryTransaction $transaction): bool
     {
-        return true;
+        return $user->isAdmin();
     }
 
     public function delete(User $user, InventoryTransaction $transaction): bool

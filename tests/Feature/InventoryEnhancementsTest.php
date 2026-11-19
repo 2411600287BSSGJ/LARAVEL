@@ -82,6 +82,7 @@ class InventoryEnhancementsTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Create Purchase Order');
         $response->assertSee('Olympic Weight Plate 20kg');
+        $response->assertSee('Estimated payment');
     }
 
     public function test_can_manually_create_purchase_order(): void
@@ -98,6 +99,72 @@ class InventoryEnhancementsTest extends TestCase
         $this->assertSame(15, $po->quantity);
         $this->assertSame('pending', $po->status);
         $response->assertRedirect(route('purchase-orders.show', $po));
+    }
+
+    public function test_purchase_order_can_contain_multiple_items_and_displays_payment_total(): void
+    {
+        $secondProduct = Product::create([
+            'name' => 'Resistance Bands',
+            'sku' => 'BAND-SET',
+            'supplier_id' => $this->supplier->id,
+            'quantity' => 4,
+            'reorder_level' => 2,
+            'unit_price' => 500.00,
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('purchase-orders.store'), [
+            'supplier_id' => $this->supplier->id,
+            'items' => [
+                ['product_id' => $this->product->id, 'quantity' => 2],
+                ['product_id' => $secondProduct->id, 'quantity' => 3],
+            ],
+        ]);
+
+        $order = PurchaseOrder::latest('id')->firstOrFail();
+        $response->assertRedirect(route('purchase-orders.show', $order));
+        $this->assertDatabaseCount('purchase_order_items', 2);
+        $this->assertSame(6500.0, $order->calculateTotal());
+        $this->assertEquals(6500, $order->fresh()->total_amount);
+
+        $this->get(route('purchase-orders.show', $order))
+            ->assertOk()
+            ->assertSee('Resistance Bands')
+            ->assertSee('Payment Terms')
+            ->assertSee('6,500.00');
+
+        $export = $this->get(route('exports.download', 'purchase-orders'))
+            ->assertOk()
+            ->streamedContent();
+        $this->assertStringContainsString('Resistance Bands x 3', $export);
+        $this->assertStringContainsString('Olympic Weight Plate 20kg x 2', $export);
+        $this->assertStringContainsString('6500', $export);
+
+        $this->post(route('purchase-orders.receive', $order))->assertRedirect(route('purchase-orders.show', $order));
+        $this->assertSame(10, $this->product->fresh()->quantity);
+        $this->assertSame(7, $secondProduct->fresh()->quantity);
+        $this->assertDatabaseCount('transactions', 2);
+    }
+
+    public function test_product_form_lists_all_categories_and_suppliers_in_selects(): void
+    {
+        $category = Category::create(['name' => 'Competition Ropes']);
+        $supplier = Supplier::create(['name' => 'Rope and Fitness Supply']);
+
+        $this->actingAs($this->admin)
+            ->get(route('products.create'))
+            ->assertOk()
+            ->assertSee('value="' . $category->name . '"', false)
+            ->assertSee('value="' . $supplier->id . '"', false);
+    }
+
+    public function test_unknown_routes_fall_back_to_dashboard_or_login(): void
+    {
+        $this->actingAs($this->admin)
+            ->get('/an-unknown-page')
+            ->assertRedirect(route('dashboard'));
+
+        auth()->logout();
+        $this->get('/another-unknown-page')->assertRedirect(route('login'));
     }
 
     public function test_admin_can_cancel_pending_purchase_order(): void
@@ -168,6 +235,33 @@ class InventoryEnhancementsTest extends TestCase
         $response->assertRedirect();
         $this->assertSame('approved', $po->fresh()->status);
         $this->assertEquals($this->admin->id, $po->fresh()->approved_by);
+    }
+
+    public function test_admin_can_approve_a_purchase_order_created_by_staff_from_the_orders_list(): void
+    {
+        $this->actingAs($this->staff)->post(route('purchase-orders.store'), [
+            'supplier_id' => $this->supplier->id,
+            'items' => [
+                ['product_id' => $this->product->id, 'quantity' => 6],
+            ],
+        ])->assertRedirect();
+
+        $order = PurchaseOrder::latest('id')->firstOrFail();
+        $this->assertSame($this->staff->id, $order->created_by);
+        $this->assertSame('pending', $order->status);
+
+        $this->actingAs($this->admin)
+            ->get(route('purchase-orders.index'))
+            ->assertOk()
+            ->assertSee($order->reference)
+            ->assertSee($this->staff->name)
+            ->assertSee('Approve');
+
+        $this->post(route('purchase-orders.approve', $order))
+            ->assertRedirect(route('purchase-orders.show', $order));
+
+        $this->assertSame('approved', $order->fresh()->status);
+        $this->assertSame($this->admin->id, $order->fresh()->approved_by);
     }
 
     public function test_admin_can_reject_purchase_order(): void

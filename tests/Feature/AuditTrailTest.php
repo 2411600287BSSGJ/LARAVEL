@@ -36,13 +36,24 @@ class AuditTrailTest extends TestCase
         ]);
     }
 
-    public function test_audit_trail_index_renders_for_authenticated_users(): void
+    public function test_audit_trail_is_only_visible_to_administrators(): void
     {
-        $response = $this->actingAs($this->staff)->get(route('transactions.index'));
+        $response = $this->actingAs($this->admin)->get(route('transactions.index'));
         $response->assertStatus(200);
         $response->assertSee('Inventory Audit Trail');
         $response->assertSee('Export CSV');
         $response->assertSee('Print Ledger');
+
+        $this->actingAs($this->staff)->get(route('transactions.index'))->assertForbidden();
+        $this->get(route('api.transactions.recent'))->assertForbidden();
+        $this->get(route('reports.index'))->assertForbidden();
+        $this->get(route('reports.export.stock-movement'))->assertForbidden();
+        $this->get(route('exports.download', 'transactions'))->assertForbidden();
+        $this->get(route('export.transactions.csv'))->assertForbidden();
+        $this->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee('Audit Trail')
+            ->assertDontSee('Recent Stock Movements');
     }
 
     public function test_audit_trail_edit_page_renders_with_transaction_details(): void
@@ -65,7 +76,7 @@ class AuditTrailTest extends TestCase
             'notes' => 'Initial batch receipt',
         ]);
 
-        $response = $this->actingAs($this->staff)->get(route('transactions.edit', $tx));
+        $response = $this->actingAs($this->admin)->get(route('transactions.edit', $tx));
         $response->assertStatus(200);
         $response->assertSee('Edit Audit Record #' . $tx->id);
         $response->assertSee('Olympic Barbell 20kg');
@@ -137,6 +148,7 @@ class AuditTrailTest extends TestCase
         $response = $this->actingAs($this->admin)->get(route('transactions.export.csv'));
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+        $this->actingAs($this->staff)->get(route('transactions.export.csv'))->assertForbidden();
     }
 
     public function test_printable_audit_trail_and_voucher_render(): void
@@ -159,16 +171,18 @@ class AuditTrailTest extends TestCase
         ]);
 
         // Test Ledger Print View
-        $ledgerResponse = $this->actingAs($this->staff)->get(route('transactions.print'));
+        $ledgerResponse = $this->actingAs($this->admin)->get(route('transactions.print'));
         $ledgerResponse->assertStatus(200);
         $ledgerResponse->assertSee('Official Stock Movement Audit Trail Ledger');
         $ledgerResponse->assertSee('Kettlebell 16kg');
 
         // Test Voucher Print View
-        $voucherResponse = $this->actingAs($this->staff)->get(route('transactions.print.show', $tx));
+        $voucherResponse = $this->actingAs($this->admin)->get(route('transactions.print.show', $tx));
         $voucherResponse->assertStatus(200);
         $voucherResponse->assertSee('Stock Movement Audit Voucher');
         $voucherResponse->assertSee('Kettlebell 16kg');
+        $this->actingAs($this->staff)->get(route('transactions.print'))->assertForbidden();
+        $this->get(route('transactions.print.show', $tx))->assertForbidden();
     }
 
     public function test_staff_encoding_stock_in_sends_email_to_staff_and_admin(): void
@@ -192,7 +206,7 @@ class AuditTrailTest extends TestCase
             'notes' => 'Fresh stock delivered',
         ]);
 
-        $response->assertRedirect(route('transactions.index'));
+        $response->assertRedirect(route('dashboard'));
 
         // Assert mail was sent to both admin and staff
         Mail::assertSent(StaffStockMovementMail::class, function ($mail) {
@@ -227,7 +241,7 @@ class AuditTrailTest extends TestCase
             'notes' => 'Issued to front desk',
         ]);
 
-        $response->assertRedirect(route('transactions.index'));
+        $response->assertRedirect(route('dashboard'));
 
         // Assert mail was sent to both admin and staff
         Mail::assertSent(StaffStockMovementMail::class, function ($mail) {

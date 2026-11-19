@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\InventoryTransaction;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
+use App\Models\SalesOrder;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Observers\InventoryTransactionObserver;
@@ -15,11 +16,13 @@ use App\Policies\CategoryPolicy;
 use App\Policies\InventoryTransactionPolicy;
 use App\Policies\ProductPolicy;
 use App\Policies\PurchaseOrderPolicy;
+use App\Policies\SalesOrderPolicy;
 use App\Policies\SupplierPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,6 +30,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Paginator::useBootstrapFive();
+
         // Auto-create the MySQL database if it does not exist
         $this->ensureDatabaseExists();
 
@@ -36,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Supplier::class, SupplierPolicy::class);
         Gate::policy(InventoryTransaction::class, InventoryTransactionPolicy::class);
         Gate::policy(PurchaseOrder::class, PurchaseOrderPolicy::class);
+        Gate::policy(SalesOrder::class, SalesOrderPolicy::class);
         Gate::policy(User::class, UserPolicy::class);
     }
 

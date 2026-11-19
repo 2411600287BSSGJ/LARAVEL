@@ -26,7 +26,7 @@ class SearchService
      */
     public function searchPurchaseOrders(array $filters, int $perPage = 15): LengthAwarePaginator
     {
-        return PurchaseOrder::with(['product', 'supplier', 'creator'])
+        return PurchaseOrder::with(['product', 'items.product', 'supplier', 'creator'])
             ->filter($filters)
             ->latest()
             ->paginate($perPage);

@@ -73,6 +73,8 @@ class DashboardApiController extends Controller
      */
     public function recentTransactions(): JsonResponse
     {
+        abort_unless(auth()->user()->isAdmin(), 403, 'Only administrators can view the audit trail.');
+
         $transactions = InventoryTransaction::with(['product', 'user'])
             ->latest()
             ->take(10)
@@ -103,7 +105,7 @@ class DashboardApiController extends Controller
      */
     public function pendingOrders(): JsonResponse
     {
-        $orders = \App\Models\PurchaseOrder::with(['product', 'supplier'])
+        $orders = \App\Models\PurchaseOrder::with(['product', 'items.product', 'supplier'])
             ->where('status', 'pending')
             ->latest()
             ->take(10)
@@ -112,9 +114,9 @@ class DashboardApiController extends Controller
                 return [
                     'id' => $po->id,
                     'reference' => $po->reference,
-                    'product_name' => $po->product?->name ?? 'Unassigned',
+                    'product_name' => $po->items->map(fn ($item) => $item->product?->name)->filter()->join(', ') ?: 'Unassigned',
                     'supplier_name' => $po->supplier?->name ?? 'Unassigned',
-                    'quantity' => $po->quantity,
+                    'quantity' => $po->items->sum('quantity'),
                     'status' => $po->status,
                     'url' => route('purchase-orders.show', $po),
                 ];
@@ -131,7 +133,7 @@ class DashboardApiController extends Controller
      */
     public function recentOrders(): JsonResponse
     {
-        $orders = \App\Models\PurchaseOrder::with(['product', 'supplier'])
+        $orders = \App\Models\PurchaseOrder::with(['product', 'items.product', 'supplier'])
             ->latest()
             ->take(10)
             ->get()
@@ -139,9 +141,9 @@ class DashboardApiController extends Controller
                 return [
                     'id' => $po->id,
                     'reference' => $po->reference,
-                    'product_name' => $po->product?->name ?? 'Unassigned',
+                    'product_name' => $po->items->map(fn ($item) => $item->product?->name)->filter()->join(', ') ?: 'Unassigned',
                     'supplier_name' => $po->supplier?->name ?? 'Unassigned',
-                    'quantity' => $po->quantity,
+                    'quantity' => $po->items->sum('quantity'),
                     'status' => $po->status,
                     'url' => route('purchase-orders.show', $po),
                 ];

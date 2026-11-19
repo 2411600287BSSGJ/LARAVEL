@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\InventoryTransaction;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
+use App\Models\SalesOrder;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Http\Response;
@@ -20,7 +21,8 @@ class ExportController extends Controller
         'categories' => [Category::class, ['id', 'name', 'description', 'deleted_at', 'created_at', 'updated_at']],
         'suppliers' => [Supplier::class, ['id', 'name', 'contact_person', 'email', 'phone', 'address', 'lead_time_days', 'deleted_at', 'created_at', 'updated_at']],
         'transactions' => [InventoryTransaction::class, ['id', 'product_id', 'user_id', 'purchase_order_id', 'type', 'quantity', 'unit_price', 'reference', 'notes', 'deleted_at', 'created_at', 'updated_at']],
-        'purchase-orders' => [PurchaseOrder::class, ['id', 'reference', 'product_id', 'supplier_id', 'quantity', 'status', 'notes', 'created_by', 'received_at', 'deleted_at', 'created_at', 'updated_at']],
+        'purchase-orders' => [PurchaseOrder::class, ['id', 'reference', 'product_id', 'supplier_id', 'quantity', 'items_summary', 'total_quantity', 'estimated_total', 'status', 'notes', 'created_by', 'received_at', 'deleted_at', 'created_at', 'updated_at']],
+        'sales-orders' => [SalesOrder::class, ['id', 'order_number', 'customer_name', 'customer_phone', 'customer_email', 'product_id', 'quantity', 'unit_price', 'total_amount', 'status', 'notes', 'rejection_reason', 'created_by', 'approved_by', 'approved_at', 'deleted_at', 'created_at', 'updated_at']],
         'users' => [User::class, ['id', 'name', 'email', 'email_verified_at', 'role', 'deleted_at', 'created_at', 'updated_at']],
     ];
 
@@ -29,7 +31,9 @@ class ExportController extends Controller
     {
         abort_unless(isset(self::EXPORTS[$table]), 404);
         // Authorization for sensitive data
-        if ($table === 'users') {
+        if ($table === 'transactions') {
+            $this->authorize('viewAny', InventoryTransaction::class);
+        } elseif ($table === 'users') {
             $this->authorize('viewAny', User::class);
         }
 

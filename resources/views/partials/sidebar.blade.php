@@ -11,15 +11,19 @@
                 <a class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('products.index') }}">
                     <i class="bi bi-box-seam me-2"></i>Products
                 </a>
-                <a class="nav-link {{ (request()->routeIs('transactions.*') || request()->routeIs('audit-trail.*')) && !request()->routeIs('adjustments.*') ? 'active' : '' }}" href="{{ route('transactions.index') }}">
-                    <i class="bi bi-journal-text me-2"></i>Audit Trail
-                </a>
+                @if (auth()->user()->isAdmin())
+                    <a class="nav-link {{ (request()->routeIs('transactions.*') || request()->routeIs('audit-trail.*')) && !request()->routeIs('adjustments.*') ? 'active' : '' }}" href="{{ route('transactions.index') }}">
+                        <i class="bi bi-journal-text me-2"></i>Audit Trail
+                    </a>
+                @endif
                 <a class="nav-link {{ request()->routeIs('adjustments.*') ? 'active' : '' }}" href="{{ route('adjustments.create') }}">
                     <i class="bi bi-sliders me-2"></i>Stock Adjustment
                 </a>
-                <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.index') }}">
-                    <i class="bi bi-clipboard-data me-2"></i>Reports & Exports
-                </a>
+                @if (auth()->user()->isAdmin())
+                    <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.index') }}">
+                        <i class="bi bi-clipboard-data me-2"></i>Reports & Exports
+                    </a>
+                @endif
 
                 <h6 class="text-muted text-uppercase fw-bold small mt-3 mb-2 tracking-wide">
                     <i class="bi bi-gear-fill me-1"></i> Management
@@ -35,6 +39,9 @@
                 </a>
                 <a class="nav-link {{ request()->routeIs('purchase-orders.*') ? 'active' : '' }}" href="{{ route('purchase-orders.index') }}">
                     <i class="bi bi-receipt me-2"></i>Purchase Orders
+                </a>
+                <a class="nav-link {{ request()->routeIs('sales-orders.*') ? 'active' : '' }}" href="{{ route('sales-orders.index') }}">
+                    <i class="bi bi-cart-check me-2"></i>Sales Orders
                 </a>
                 @if (auth()->user()->isAdmin())
                     <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">

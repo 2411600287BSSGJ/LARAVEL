@@ -26,18 +26,30 @@
 
                 <!-- SKU -->
                 <div class="col-md-4">
-                    <label for="sku" class="form-label fw-semibold">
-                        SKU Code <span class="text-danger">*</span>
-                    </label>
-                    <input type="text"
-                           class="form-control font-monospace @error('sku') is-invalid @enderror"
-                           id="sku"
-                           name="sku"
-                           placeholder="e.g. GYM-DB-550"
-                           value="{{ old('sku', $product->sku ?? '') }}"
-                           required>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label for="sku" class="form-label fw-semibold mb-0">
+                            SKU Code <span class="text-danger">*</span>
+                        </label>
+                        <button type="button" class="btn btn-sm btn-link text-primary p-0 text-decoration-none fw-semibold" id="btnGenerateSku" title="Generate SKU">
+                            <i class="bi bi-magic me-1"></i>Auto-Generate
+                        </button>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted font-monospace"><i class="bi bi-upc-scan"></i></span>
+                        <input type="text"
+                               class="form-control font-monospace @error('sku') is-invalid @enderror"
+                               id="sku"
+                               name="sku"
+                               placeholder="e.g. GYM-FW-550"
+                               value="{{ old('sku', $product->sku ?? $suggestedSku ?? '') }}"
+                               required>
+                        <button type="button" class="btn btn-outline-secondary" id="btnRefreshSku" title="Regenerate SKU">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">Unique inventory identifier</small>
                     @error('sku')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
                 </div>
 
@@ -46,19 +58,12 @@
                     <label for="category" class="form-label fw-semibold">
                         Category <span class="text-danger">*</span>
                     </label>
-                    <input type="text"
-                           list="category-suggestions"
-                           class="form-control @error('category') is-invalid @enderror"
-                           id="category"
-                           name="category"
-                           placeholder="Select or type category (e.g. Free Weights, Cardio...)"
-                           value="{{ old('category', $product->category_name ?? '') }}"
-                           required>
-                    <datalist id="category-suggestions">
+                    <select class="form-select @error('category') is-invalid @enderror" id="category" name="category" required>
+                        <option value="">-- Choose a category --</option>
                         @foreach($categoryList ?? ['Free Weights', 'Cardio Equipment', 'Strength Machines', 'Fitness Accessories', 'Supplements & Nutrition', 'Recovery & Mobility'] as $cat)
-                            <option value="{{ $cat }}">
+                            <option value="{{ $cat }}" @selected(old('category', $product->category_name ?? '') === $cat)>{{ $cat }}</option>
                         @endforeach
-                    </datalist>
+                    </select>
                     @error('category')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -66,22 +71,16 @@
 
                 <!-- Supplier -->
                 <div class="col-md-6">
-                    <label for="supplier" class="form-label fw-semibold">Supplier / Vendor</label>
-                    <input type="text"
-                           list="supplier-suggestions"
-                           class="form-control @error('supplier') is-invalid @enderror"
-                           id="supplier"
-                           name="supplier"
-                           placeholder="Select or type supplier name..."
-                           value="{{ old('supplier', $product->supplier_name ?? '') }}">
-                    <datalist id="supplier-suggestions">
+                    <label for="supplier_id" class="form-label fw-semibold">Supplier / Vendor</label>
+                    <select class="form-select @error('supplier_id') is-invalid @enderror" id="supplier_id" name="supplier_id">
+                        <option value="">-- No supplier --</option>
                         @if(isset($suppliers))
                             @foreach($suppliers as $sup)
-                                <option value="{{ $sup->name }}">
+                                <option value="{{ $sup->id }}" @selected(old('supplier_id', $product->supplier_id ?? '') == $sup->id)>{{ $sup->name }}</option>
                             @endforeach
                         @endif
-                    </datalist>
-                    @error('supplier')
+                    </select>
+                    @error('supplier_id')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
@@ -171,3 +170,58 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const skuInput = document.getElementById('sku');
+    const categorySelect = document.getElementById('category');
+    const btnGenerate = document.getElementById('btnGenerateSku');
+    const btnRefresh = document.getElementById('btnRefreshSku');
+
+    const categoryCodes = {
+        'Free Weights': 'FW',
+        'Cardio Equipment': 'CRD',
+        'Strength Machines': 'STR',
+        'Fitness Accessories': 'ACC',
+        'Supplements & Nutrition': 'SUP',
+        'Recovery & Mobility': 'REC'
+    };
+
+    function generateSku() {
+        if (!skuInput) return;
+        const selectedCat = categorySelect ? categorySelect.value : '';
+        const code = categoryCodes[selectedCat] || 'EQP';
+        const rand = Math.floor(100 + Math.random() * 900);
+        skuInput.value = `GYM-${code}-${rand}`;
+        skuInput.classList.remove('is-invalid');
+    }
+
+    if (btnGenerate) {
+        btnGenerate.addEventListener('click', function (e) {
+            e.preventDefault();
+            generateSku();
+        });
+    }
+
+    if (btnRefresh) {
+        btnRefresh.addEventListener('click', function (e) {
+            e.preventDefault();
+            generateSku();
+        });
+    }
+
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function () {
+            // If SKU is empty or begins with standard GYM- prefix, adjust code to selected category
+            if (!skuInput.value || skuInput.value.startsWith('GYM-')) {
+                generateSku();
+            }
+        });
+    }
+
+    // Auto-generate if field is empty on page load
+    if (skuInput && !skuInput.value.trim()) {
+        generateSku();
+    }
+});
+</script>

@@ -209,7 +209,7 @@
 
     <!-- Recent Products & Recent Transactions -->
     <div class="row g-4 mb-4">        <!-- Recent Products -->
-        <div class="col-xl-6">
+        <div class="{{ auth()->user()->isAdmin() ? 'col-xl-6' : 'col-xl-12' }}">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold"><i class="bi bi-box-seam text-primary me-2"></i>Recently Added Products</h5>
@@ -255,6 +255,7 @@
             </div>
         </div>
 
+        @if (auth()->user()->isAdmin())
         <!-- Recent Transactions -->
         <div class="col-xl-6">
             <div class="card shadow-sm border-0 h-100">
@@ -304,6 +305,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 
     <!-- Procurement & Supplier Performance Widgets (Laboratory 7) -->
@@ -387,6 +389,7 @@
                 }
             }
 
+            @if (auth()->user()->isAdmin())
             // 3. Fetch Recent Transactions
             const txRes = await fetch("{{ route('api.transactions.recent') }}", {
                 headers: { 'Accept': 'application/json' }
@@ -419,6 +422,7 @@
                     txTbody.innerHTML = txRows;
                 }
             }
+            @endif
         } catch (error) {
             console.warn('Dashboard polling failed (will retry):', error);
         }

@@ -136,6 +136,7 @@
         </div>
     </div>
 
+    @if (auth()->user()->isAdmin())
     <!-- Product Transaction History with Running Balance -->
     <div class="card shadow-sm border-0">
         <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
@@ -236,4 +237,5 @@
             </table>
         </div>
     </div>
+    @endif
 @endsection

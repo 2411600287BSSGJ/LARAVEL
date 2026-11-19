@@ -54,7 +54,7 @@
 
             <!-- Receive Button -->
             @can('receive', $purchaseOrder)
-                <form method="POST" action="{{ route('purchase-orders.receive', $purchaseOrder) }}" onsubmit="return confirm('Receive this purchase order? This will immediately add {{ $purchaseOrder->quantity }} units to inventory.');">
+                <form method="POST" action="{{ route('purchase-orders.receive', $purchaseOrder) }}" onsubmit="return confirm('Receive this purchase order? This will immediately add {{ $purchaseOrder->items->sum('quantity') }} units to inventory.');">
                     @csrf
                     <button type="submit" class="btn btn-success">
                         <i class="bi bi-box-seam me-1"></i>Mark Received &amp; Add Stock
@@ -83,8 +83,7 @@
     </div>
 
     @php
-        $unitPrice = $purchaseOrder->product?->unit_price ?? 0;
-        $totalCost = $purchaseOrder->quantity * $unitPrice;
+        $totalCost = $purchaseOrder->calculateTotal();
     @endphp
 
     <div class="row g-4">
@@ -101,15 +100,19 @@
                             <code class="fs-6">{{ $purchaseOrder->reference }}</code>
                         </div>
                         <div class="list-group-item d-flex justify-content-between px-0">
-                            <span class="text-muted">Quantity Ordered</span>
-                            <strong class="fs-5 text-dark">{{ $purchaseOrder->quantity }} units</strong>
+                            <span class="text-muted">Products Ordered</span>
+                            <strong class="fs-5 text-dark">{{ $purchaseOrder->items->count() }}</strong>
                         </div>
                         <div class="list-group-item d-flex justify-content-between px-0">
-                            <span class="text-muted">Estimated Unit Cost</span>
-                            <strong>₱{{ number_format($unitPrice, 2) }}</strong>
+                            <span class="text-muted">Total Quantity</span>
+                            <strong>{{ $purchaseOrder->items->sum('quantity') }} units</strong>
                         </div>
                         <div class="list-group-item d-flex justify-content-between px-0">
-                            <span class="text-muted">Total Order Value</span>
+                            <span class="text-muted">Payment Terms</span>
+                            <strong>{{ $purchaseOrder->supplier?->payment_terms ?? 'Not specified' }}</strong>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between px-0">
+                            <span class="text-muted">Estimated Payment</span>
                             <strong class="text-success fs-4">₱{{ number_format($totalCost, 2) }}</strong>
                         </div>
                         <div class="list-group-item d-flex justify-content-between px-0">
@@ -134,37 +137,31 @@
                 <div class="col-12">
                     <div class="card shadow-sm border-0">
                         <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0 fw-bold"><i class="bi bi-box-seam text-danger me-2"></i>Product to Restock</h5>
-                            @if($purchaseOrder->product)
-                                <a href="{{ route('products.show', $purchaseOrder->product) }}" class="btn btn-sm btn-outline-primary">
-                                    View Catalog Item
-                                </a>
-                            @endif
+                            <h5 class="mb-0 fw-bold"><i class="bi bi-box-seam text-danger me-2"></i>Products to Restock</h5>
                         </div>
                         <div class="card-body p-4">
-                            @if($purchaseOrder->product)
-                                <h5 class="fw-bold text-dark mb-1">{{ $purchaseOrder->product->name }}</h5>
-                                <div class="row g-2 mt-2">
-                                    <div class="col-6">
-                                        <small class="text-muted d-block">SKU</small>
-                                        <strong class="font-monospace">{{ $purchaseOrder->product->sku }}</strong>
-                                    </div>
-                                    <div class="col-6">
-                                        <small class="text-muted d-block">Category</small>
-                                        <span class="badge bg-secondary-subtle text-secondary">{{ $purchaseOrder->product->category_name }}</span>
-                                    </div>
-                                    <div class="col-6 mt-2">
-                                        <small class="text-muted d-block">Current Stock on Hand</small>
-                                        <strong class="text-{{ $purchaseOrder->product->stock_status_color }} fs-6">{{ $purchaseOrder->product->quantity }} units</strong>
-                                    </div>
-                                    <div class="col-6 mt-2">
-                                        <small class="text-muted d-block">Reorder Trigger Level</small>
-                                        <strong>{{ $purchaseOrder->product->reorder_level }} units</strong>
-                                    </div>
-                                </div>
-                            @else
-                                <div class="text-muted fst-italic">Associated product has been archived.</div>
-                            @endif
+                            <div class="table-responsive">
+                                <table class="table align-middle mb-0">
+                                    <thead><tr><th>Product</th><th>SKU</th><th class="text-end">Qty</th><th class="text-end">Unit Cost</th><th class="text-end">Line Total</th></tr></thead>
+                                    <tbody>
+                                        @foreach($purchaseOrder->items as $item)
+                                            <tr>
+                                                <td>
+                                                    @if($item->product)
+                                                        <a href="{{ route('products.show', $item->product) }}" class="fw-semibold text-decoration-none">{{ $item->product->name }}</a>
+                                                    @else
+                                                        <span class="text-muted fst-italic">Archived product</span>
+                                                    @endif
+                                                </td>
+                                                <td class="font-monospace">{{ $item->product?->sku ?? '—' }}</td>
+                                                <td class="text-end">{{ $item->quantity }}</td>
+                                                <td class="text-end">₱{{ number_format($item->unit_price, 2) }}</td>
+                                                <td class="text-end fw-semibold">₱{{ number_format($item->quantity * $item->unit_price, 2) }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

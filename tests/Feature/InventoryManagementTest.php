@@ -34,7 +34,7 @@ class InventoryManagementTest extends TestCase
             'type' => 'outbound',
             'quantity' => 2,
             'reference' => 'ISSUE-01',
-        ])->assertRedirect(route('transactions.index'));
+        ])->assertRedirect(route('dashboard'));
 
         $this->assertSame(4, $product->fresh()->quantity);
         $this->assertDatabaseHas('transactions', [

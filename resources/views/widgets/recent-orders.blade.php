@@ -13,7 +13,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <span class="fw-semibold text-dark font-monospace">{{ $ro->reference }}</span>
-                            <small class="text-muted d-block">{{ $ro->supplier?->name ?? 'Vendor' }} &bull; {{ $ro->quantity }} units</small>
+                            <small class="text-muted d-block">{{ $ro->supplier?->name ?? 'Vendor' }} &bull; {{ $ro->items->sum('quantity') }} units</small>
                         </div>
                         <span class="badge {{ $ro->status === 'received' ? 'bg-success' : ($ro->status === 'cancelled' ? 'bg-danger' : 'bg-warning text-dark') }} text-uppercase" style="font-size: 0.7rem;">
                             {{ $ro->status }}

@@ -125,7 +125,7 @@ class HardwareInventorySystemTest extends TestCase
             'type' => 'stock_in',
             'quantity' => 15,
             'reference_number' => 'REC-1001',
-        ])->assertRedirect(route('transactions.index'));
+        ])->assertRedirect(route('dashboard'));
 
         $this->assertSame(25, $product->fresh()->quantity);
     }
@@ -145,7 +145,7 @@ class HardwareInventorySystemTest extends TestCase
             'type' => 'stock_out',
             'quantity' => 8,
             'reference_number' => 'SALE-5001',
-        ])->assertRedirect(route('transactions.index'));
+        ])->assertRedirect(route('dashboard'));
 
         $this->assertSame(12, $product->fresh()->quantity);
     }

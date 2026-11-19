@@ -138,7 +138,9 @@ class InventoryTransactionController extends Controller
             'notes' => $validated['notes'] ?? null,
         ]);
 
-        return redirect()->route('transactions.index')->with('success', 'Inventory transaction recorded and stock level updated successfully.');
+        $destination = auth()->user()->isAdmin() ? 'transactions.index' : 'dashboard';
+
+        return redirect()->route($destination)->with('success', 'Inventory transaction recorded and stock level updated successfully.');
     }
 
     /**
@@ -441,7 +443,9 @@ class InventoryTransactionController extends Controller
             'notes' => $notes,
         ]);
 
-        return redirect()->route('transactions.index')->with(
+        $destination = auth()->user()->isAdmin() ? 'transactions.index' : 'dashboard';
+
+        return redirect()->route($destination)->with(
             'success',
             "Stock adjustment processed for '{$product->name}'. Quantity updated from {$systemQuantity} to {$physicalCount}."
         );

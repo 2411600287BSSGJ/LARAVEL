@@ -17,22 +17,14 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Gym & Hardware Categories (Comprehensive Category Coverage)
+        // 1. Gym Equipment & Supplements Categories
         $categoriesData = [
-            // Gym Categories
             'Free Weights' => 'Dumbbells, barbells, bumper plates, kettlebells, and collars.',
             'Cardio Equipment' => 'Treadmills, rowers, air bikes, ellipticals, and stair climbers.',
             'Strength Machines' => 'Cable crossovers, leg presses, smith machines, and selectorized equipment.',
             'Fitness Accessories' => 'Lifting belts, resistance bands, yoga mats, gym chalk, and wrist wraps.',
             'Supplements & Nutrition' => 'Whey protein, creatine monohydrate, pre-workouts, and shakers.',
             'Recovery & Mobility' => 'Massage guns, foam rollers, compression bands, and mobility balls.',
-            // Hardware Store Categories (Laboratory 5 Activity Standard)
-            'Lumber' => 'Treated dimensional lumber, marine plywood sheets, and timber framing.',
-            'Hardware' => 'Fasteners, hex bolts, screws, heavy-duty hinges, anchors, and padlocks.',
-            'Tools' => 'Power drills, hand hammers, tape measures, saws, and socket wrenches.',
-            'Electrical' => 'Copper building wire, circuit breakers, conduit, switches, and receptacles.',
-            'Plumbing' => 'PVC pipes, brass ball valves, fittings, drain assemblies, and teflon tape.',
-            'Paint' => 'Interior/exterior latex paints, primers, brushes, rollers, and wood varnishes.',
         ];
 
         $categoryMap = [];
@@ -43,15 +35,12 @@ class ProductSeeder extends Seeder
             );
         }
 
-        // 2. Gym & Hardware Suppliers
+        // 2. Gym Equipment & Supplement Suppliers
         $suppliersData = [
             'Strength Supply Direct' => ['email' => 'sales@strengthsupply.com', 'phone' => '(555) 101-2020', 'address' => '500 Ironworks Way, Columbus, OH'],
             'Commercial Gym Outfitters' => ['email' => 'orders@gymoutfitters.com', 'phone' => '(555) 202-3030', 'address' => '1200 Fitness Blvd, Chicago, IL'],
             'Titan Fitness Depot' => ['email' => 'titan@fitnessdepot.com', 'phone' => '(555) 303-4040', 'address' => '840 Barbell Lane, Austin, TX'],
             'Global Nutrition Labs' => ['email' => 'distro@globalnutrition.com', 'phone' => '(555) 404-5050', 'address' => '310 Protein Way, Salt Lake City, UT'],
-            'Pacific Lumber & Timber Co.' => ['email' => 'orders@pacifictimber.com', 'phone' => '(02) 8888-1234', 'address' => 'Port Area, Manila, Philippines'],
-            'Manila Hardware & Industrial Supply' => ['email' => 'sales@manilahardware.com', 'phone' => '(02) 8777-5678', 'address' => 'Binondo Commercial Hub, Manila'],
-            'Metro Tool & Equipment Corp.' => ['email' => 'info@metrotoolcorp.ph', 'phone' => '(02) 8555-9012', 'address' => 'Industrial Ave, Quezon City, Philippines'],
         ];
 
         $supplierMap = [];
@@ -67,17 +56,16 @@ class ProductSeeder extends Seeder
             );
         }
 
-        // 3. Gym & Hardware Equipment Brands
+        // 3. Gym Equipment Brands
         $brandsData = [
             'Rogue Fitness', 'Eleiko', 'Hammer Strength', 'Life Fitness', 'Concept2', 'Optimum Nutrition', 'Therabody',
-            'DeWalt', 'Bosch', 'Stanley', 'Boysen', 'Philflex',
         ];
         $brandMap = [];
         foreach ($brandsData as $bName) {
             $brandMap[$bName] = Brand::firstOrCreate(['name' => $bName]);
         }
 
-        // 4. Sample Gym Products across all 6 categories (Healthy, Low Stock, Out of Stock)
+        // 4. Sample Gym Products across all 6 gym categories
         $products = [
             // Free Weights
             [
@@ -320,220 +308,6 @@ class ProductSeeder extends Seeder
                 'reorder_level' => 5,
                 'unit_price' => 22.00,
                 'description' => 'Natural latex compression wrap bands used for blood flow restriction, joint flossing, and swelling reduction.',
-            ],
-
-            // ==========================================
-            // HARDWARE STORE PRODUCTS (Laboratory 5)
-            // ==========================================
-
-            // Lumber
-            [
-                'name' => '2x4 Treated Kiln-Dried Framing Lumber (8ft)',
-                'sku' => 'LMB-2X4-08P',
-                'category' => 'Lumber',
-                'brand' => null,
-                'supplier' => 'Pacific Lumber & Timber Co.',
-                'quantity' => 120,
-                'reorder_level' => 25,
-                'unit_price' => 285.00,
-                'description' => 'Structural #2 grade kiln-dried construction lumber, ideal for framing and load-bearing studs.',
-            ],
-            [
-                'name' => '3/4-inch Marine Plywood Sheet (4x8ft)',
-                'sku' => 'LMB-PLY-34M',
-                'category' => 'Lumber',
-                'brand' => null,
-                'supplier' => 'Pacific Lumber & Timber Co.',
-                'quantity' => 6, // LOW STOCK (<= 15)
-                'reorder_level' => 15,
-                'unit_price' => 1450.00,
-                'description' => 'Waterproof phenolic-bonded marine plywood sheet for moisture-resistant construction.',
-            ],
-            [
-                'name' => '1x2 S4S Kiln-Dried Wood Furring Strips (10ft)',
-                'sku' => 'LMB-FUR-1X2',
-                'category' => 'Lumber',
-                'brand' => null,
-                'supplier' => 'Pacific Lumber & Timber Co.',
-                'quantity' => 0, // OUT OF STOCK
-                'reorder_level' => 30,
-                'unit_price' => 85.00,
-                'description' => 'Smooth surfaced four sides (S4S) wood battens for ceiling grids and drywall backing.',
-            ],
-
-            // Hardware
-            [
-                'name' => 'Grade 8 Heavy Duty Hex Bolt & Nut Set (1/2" x 3")',
-                'sku' => 'HDW-BLT-G8',
-                'category' => 'Hardware',
-                'brand' => 'Stanley',
-                'supplier' => 'Manila Hardware & Industrial Supply',
-                'quantity' => 250,
-                'reorder_level' => 50,
-                'unit_price' => 45.00,
-                'description' => 'High-strength yellow zinc plated carbon steel bolts engineered for structural load applications.',
-            ],
-            [
-                'name' => 'Stainless Steel Wood Screws #8 x 2" (100-pack)',
-                'sku' => 'HDW-SCR-SS8',
-                'category' => 'Hardware',
-                'brand' => 'Stanley',
-                'supplier' => 'Manila Hardware & Industrial Supply',
-                'quantity' => 12, // LOW STOCK (<= 20)
-                'reorder_level' => 20,
-                'unit_price' => 180.00,
-                'description' => 'Rust-proof 304 grade stainless steel flat-head Phillips screws for exterior carpentry.',
-            ],
-            [
-                'name' => 'Heavy Duty Solid Brass Padlock (50mm)',
-                'sku' => 'HDW-LCK-BR50',
-                'category' => 'Hardware',
-                'brand' => 'Stanley',
-                'supplier' => 'Manila Hardware & Industrial Supply',
-                'quantity' => 35,
-                'reorder_level' => 10,
-                'unit_price' => 395.00,
-                'description' => 'Weather-resistant solid brass padlock with hardened steel shackle and double locking pins.',
-            ],
-
-            // Tools
-            [
-                'name' => '20V Max Cordless Brushless Compact Drill Kit',
-                'sku' => 'TLS-DRL-20V',
-                'category' => 'Tools',
-                'brand' => 'DeWalt',
-                'supplier' => 'Metro Tool & Equipment Corp.',
-                'quantity' => 18,
-                'reorder_level' => 5,
-                'unit_price' => 4899.00,
-                'description' => 'High-performance brushless motor delivers 340 unit watts out; includes 2 Li-ion batteries and charger.',
-            ],
-            [
-                'name' => '16oz Anti-Vibe Fiberglass Curved Claw Hammer',
-                'sku' => 'TLS-HMR-16F',
-                'category' => 'Tools',
-                'brand' => 'Stanley',
-                'supplier' => 'Metro Tool & Equipment Corp.',
-                'quantity' => 40,
-                'reorder_level' => 8,
-                'unit_price' => 420.00,
-                'description' => 'Drop-forged carbon steel head with shock-absorbing non-slip ergonomic rubber grip.',
-            ],
-            [
-                'name' => '25ft Heavy Duty Magnetic Tape Measure',
-                'sku' => 'TLS-TAP-25M',
-                'category' => 'Tools',
-                'brand' => 'Bosch',
-                'supplier' => 'Metro Tool & Equipment Corp.',
-                'quantity' => 4, // LOW STOCK (<= 10)
-                'reorder_level' => 10,
-                'unit_price' => 350.00,
-                'description' => 'Nylon-coated blade with 13ft standout, dual-sided markings, and ultra-strong magnetic hook.',
-            ],
-
-            // Electrical
-            [
-                'name' => '12/2 THHN Solid Copper Building Wire (150m Roll)',
-                'sku' => 'ELC-WIR-122',
-                'category' => 'Electrical',
-                'brand' => 'Philflex',
-                'supplier' => 'Manila Hardware & Industrial Supply',
-                'quantity' => 15,
-                'reorder_level' => 5,
-                'unit_price' => 3850.00,
-                'description' => '99.9% pure oxygen-free copper electrical building wire with flame-retardant PVC jacket.',
-            ],
-            [
-                'name' => '20A 1-Pole Miniature Circuit Breaker (DIN Rail)',
-                'sku' => 'ELC-BRK-20A',
-                'category' => 'Electrical',
-                'brand' => 'Bosch',
-                'supplier' => 'Manila Hardware & Industrial Supply',
-                'quantity' => 55,
-                'reorder_level' => 15,
-                'unit_price' => 280.00,
-                'description' => 'Thermal magnetic overload and short circuit protection breaker rated for 6kA breaking capacity.',
-            ],
-            [
-                'name' => '15A 125V Duplex Receptacle Wall Outlet (White)',
-                'sku' => 'ELC-OUT-15A',
-                'category' => 'Electrical',
-                'brand' => 'Philflex',
-                'supplier' => 'Manila Hardware & Industrial Supply',
-                'quantity' => 0, // OUT OF STOCK
-                'reorder_level' => 25,
-                'unit_price' => 110.00,
-                'description' => 'Impact-resistant thermoplastic wall socket with side and back push-in terminals.',
-            ],
-
-            // Plumbing
-            [
-                'name' => '3/4-inch Schedule 40 Blue PVC Water Pipe (10ft)',
-                'sku' => 'PLM-PVC-34',
-                'category' => 'Plumbing',
-                'brand' => null,
-                'supplier' => 'Manila Hardware & Industrial Supply',
-                'quantity' => 85,
-                'reorder_level' => 20,
-                'unit_price' => 195.00,
-                'description' => 'Potable water certified rigid PVC pipe with high tensile and burst strength ratings.',
-            ],
-            [
-                'name' => 'Solid Brass Quarter-Turn Ball Valve (3/4")',
-                'sku' => 'PLM-VLV-BL34',
-                'category' => 'Plumbing',
-                'brand' => 'Stanley',
-                'supplier' => 'Manila Hardware & Industrial Supply',
-                'quantity' => 7, // LOW STOCK (<= 12)
-                'reorder_level' => 12,
-                'unit_price' => 320.00,
-                'description' => 'Corrosion-resistant forged brass ball valve with chrome-plated brass ball and vinyl grip lever.',
-            ],
-            [
-                'name' => 'Heavy Duty PTFE Thread Seal Teflon Tape (1/2" x 520")',
-                'sku' => 'PLM-TEF-05',
-                'category' => 'Plumbing',
-                'brand' => null,
-                'supplier' => 'Manila Hardware & Industrial Supply',
-                'quantity' => 150,
-                'reorder_level' => 30,
-                'unit_price' => 35.00,
-                'description' => 'High-density industrial grade teflon pipe joint tape for leak-proof plumbing threads.',
-            ],
-
-            // Paint
-            [
-                'name' => 'Permacoat Flat Latex White Architectural Paint (4L)',
-                'sku' => 'PNT-LTX-WHT4',
-                'category' => 'Paint',
-                'brand' => 'Boysen',
-                'supplier' => 'Manila Hardware & Industrial Supply',
-                'quantity' => 28,
-                'reorder_level' => 10,
-                'unit_price' => 680.00,
-                'description' => '100% acrylic water-based interior paint offering maximum hiding, mildew resistance, and easy clean.',
-            ],
-            [
-                'name' => '4-inch Premium Polyester Paint Roller Kit with Tray',
-                'sku' => 'PNT-ROL-4IN',
-                'category' => 'Paint',
-                'brand' => 'Boysen',
-                'supplier' => 'Metro Tool & Equipment Corp.',
-                'quantity' => 5, // LOW STOCK (<= 15)
-                'reorder_level' => 15,
-                'unit_price' => 165.00,
-                'description' => 'High-density woven fabric mini-roller for trim, doors, and smooth uniform wall finish.',
-            ],
-            [
-                'name' => 'Clear Gloss Polyurethane Interior Wood Varnish (1L)',
-                'sku' => 'PNT-VAR-1L',
-                'category' => 'Paint',
-                'brand' => 'Boysen',
-                'supplier' => 'Pacific Lumber & Timber Co.',
-                'quantity' => 22,
-                'reorder_level' => 6,
-                'unit_price' => 340.00,
-                'description' => 'Ultra-hard protective coating for timber, flooring, cabinets, and decorative wood surfaces.',
             ],
         ];
 

@@ -17,6 +17,8 @@ class ReportController extends Controller
      */
     public function index(Request $request): View
     {
+        $this->authorize('viewAny', InventoryTransaction::class);
+
         $startDate = $request->input('start_date', now()->subDays(30)->toDateString());
         $endDate = $request->input('end_date', now()->toDateString());
 
@@ -72,6 +74,8 @@ class ReportController extends Controller
      */
     public function exportStockMovement(Request $request): StreamedResponse
     {
+        $this->authorize('viewAny', InventoryTransaction::class);
+
         $startDate = $request->input('start_date', now()->subDays(30)->toDateString());
         $endDate = $request->input('end_date', now()->toDateString());
 

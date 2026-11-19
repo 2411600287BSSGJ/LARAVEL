@@ -13,7 +13,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <strong class="text-dark d-block font-monospace">{{ $po->reference }}</strong>
-                            <small class="text-secondary">{{ $po->product?->name }} ({{ $po->quantity }} units)</small>
+                            <small class="text-secondary">{{ $po->items->map(fn ($item) => $item->product?->name)->filter()->join(', ') }} ({{ $po->items->sum('quantity') }} units)</small>
                         </div>
                         <span class="badge bg-warning-subtle text-warning border">Pending</span>
                     </div>

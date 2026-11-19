@@ -78,6 +78,7 @@
                     <div class="small text-secondary">Email: {{ $purchaseOrder->supplier?->email ?: 'N/A' }}</div>
                     <div class="small text-secondary">Phone: {{ $purchaseOrder->supplier?->phone ?: 'N/A' }}</div>
                     <div class="small text-secondary">Address: {{ $purchaseOrder->supplier?->address ?: 'N/A' }}</div>
+                    <div class="small text-secondary">Payment Terms: {{ $purchaseOrder->supplier?->payment_terms ?? 'Not specified' }}</div>
                 </div>
             </div>
             <div class="col-6">
@@ -92,8 +93,7 @@
         </div>
 
         @php
-            $unitPrice = $purchaseOrder->product?->unit_price ?? 0;
-            $totalCost = $purchaseOrder->quantity * $unitPrice;
+            $totalCost = $purchaseOrder->calculateTotal();
         @endphp
 
         <!-- Line Items Table -->
@@ -110,17 +110,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td class="text-center">1</td>
-                        <td>
-                            <strong>{{ $purchaseOrder->product?->name ?? 'Archived Product' }}</strong>
-                            <small class="text-muted d-block">{{ $purchaseOrder->product?->description ?? 'Standard inventory equipment replenishment' }}</small>
-                        </td>
-                        <td class="font-monospace">{{ $purchaseOrder->product?->sku ?? '—' }}</td>
-                        <td class="text-center fw-bold fs-6">{{ $purchaseOrder->quantity }}</td>
-                        <td class="text-end">₱{{ number_format($unitPrice, 2) }}</td>
-                        <td class="text-end fw-bold">₱{{ number_format($totalCost, 2) }}</td>
-                    </tr>
+                    @foreach($purchaseOrder->items as $index => $item)
+                        <tr>
+                            <td class="text-center">{{ $index + 1 }}</td>
+                            <td>
+                                <strong>{{ $item->product?->name ?? 'Archived Product' }}</strong>
+                                <small class="text-muted d-block">{{ $item->product?->description ?? 'Standard inventory equipment replenishment' }}</small>
+                            </td>
+                            <td class="font-monospace">{{ $item->product?->sku ?? '—' }}</td>
+                            <td class="text-center fw-bold fs-6">{{ $item->quantity }}</td>
+                            <td class="text-end">₱{{ number_format($item->unit_price, 2) }}</td>
+                            <td class="text-end fw-bold">₱{{ number_format($item->quantity * $item->unit_price, 2) }}</td>
+                        </tr>
+                    @endforeach
                 </tbody>
                 <tfoot>
                     <tr>

@@ -195,8 +195,8 @@
                     @forelse($purchaseOrders as $po)
                         <tr>
                             <td><code>{{ $po->reference }}</code></td>
-                            <td>{{ $po->product?->name ?? 'Archived Product' }}</td>
-                            <td class="text-center fw-bold">{{ $po->quantity }}</td>
+                            <td>{{ $po->items->map(fn ($item) => $item->product?->name ?? 'Archived Product')->join(', ') }}</td>
+                            <td class="text-center fw-bold">{{ $po->items->sum('quantity') }}</td>
                             <td class="text-center">
                                 <span class="badge {{ $po->status === 'received' ? 'bg-success' : ($po->status === 'cancelled' ? 'bg-danger' : 'bg-warning text-dark') }} text-uppercase">
                                     {{ $po->status }}

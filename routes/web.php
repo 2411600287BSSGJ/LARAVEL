@@ -11,6 +11,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth; // <-- ADDED THIS
@@ -74,6 +75,16 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/purchase-orders/{purchaseOrder}/cancel', [PurchaseOrderController::class, 'cancel'])->name('purchase-orders.cancel');
     Route::get('/purchase-orders/{purchaseOrder}/print', [PurchaseOrderController::class, 'printOrder'])->name('purchase-orders.print');
 
+    // Sales Orders (Customer Orders / Dispatch)
+    Route::get('/sales-orders', [SalesOrderController::class, 'index'])->name('sales-orders.index');
+    Route::get('/sales-orders/create', [SalesOrderController::class, 'create'])->name('sales-orders.create');
+    Route::post('/sales-orders', [SalesOrderController::class, 'store'])->name('sales-orders.store');
+    Route::get('/sales-orders/{salesOrder}', [SalesOrderController::class, 'show'])->name('sales-orders.show');
+    Route::post('/sales-orders/{salesOrder}/approve', [SalesOrderController::class, 'approve'])->name('sales-orders.approve');
+    Route::post('/sales-orders/{salesOrder}/reject', [SalesOrderController::class, 'reject'])->name('sales-orders.reject');
+    Route::post('/sales-orders/{salesOrder}/cancel', [SalesOrderController::class, 'cancel'])->name('sales-orders.cancel');
+    Route::get('/sales-orders/{salesOrder}/print', [SalesOrderController::class, 'printOrder'])->name('sales-orders.print');
+
     // Reports and CSV Exports
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export/stock-movement', [ReportController::class, 'exportStockMovement'])->name('reports.export.stock-movement');
@@ -83,10 +94,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/exports/{table}', [ExportController::class, 'download'])->name('exports.download');
 
     // CSV specific shortcuts
-    Route::get('export/products/csv', [ExportController::class, 'download'])->where('table', 'products')->name('export.products.csv');
-    Route::get('export/purchase-orders/csv', [ExportController::class, 'download'])->where('table', 'purchase-orders')->name('export.purchase_orders.csv');
-    Route::get('export/transactions/csv', [ExportController::class, 'download'])->where('table', 'transactions')->name('export.transactions.csv');
-    Route::get('export/suppliers/csv', [ExportController::class, 'download'])->where('table', 'suppliers')->name('export.suppliers.csv');
+    Route::get('export/products/csv', fn () => app(ExportController::class)->download('products'))->name('export.products.csv');
+    Route::get('export/purchase-orders/csv', fn () => app(ExportController::class)->download('purchase-orders'))->name('export.purchase_orders.csv');
+    Route::get('export/transactions/csv', fn () => app(ExportController::class)->download('transactions'))->name('export.transactions.csv');
+    Route::get('export/suppliers/csv', fn () => app(ExportController::class)->download('suppliers'))->name('export.suppliers.csv');
 
     // Notifications
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllRead');

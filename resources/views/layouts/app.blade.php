@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') - Gym Inventory System</title>
+    <link rel="icon" type="image/png" href="{{ asset('js/assets/catsss.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
@@ -16,7 +17,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
         <div class="container-fluid px-4">
             <a class="navbar-brand d-flex align-items-center" href="{{ route('dashboard') }}">
-                <i class="bi bi-activity text-danger me-2 fs-4"></i>
+                <img src="{{ asset('js/assets/catsss.png') }}" alt="Gym Inventory Cat Logo" class="navbar-brand-logo me-2" style="width: 36px; height: 36px; object-fit: contain;">
                 <span>Gym Inventory</span>
             </a>
 
@@ -39,9 +40,9 @@
                                 <span class="visually-hidden">unread alerts</span>
                             </span>
                         </button>
-                        <div class="dropdown-menu dropdown-menu-end shadow notification-menu p-0">
+                        <div class="dropdown-menu dropdown-menu-end shadow notification-menu p-0" style="min-width: 340px;">
                             <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0 fw-bold"><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> Low Stock Alerts</h6>
+                                <h6 class="mb-0 fw-bold"><i class="bi bi-bell-fill text-warning me-1"></i> Notifications & Alerts</h6>
                                 <form id="markAllNotificationsRead" action="{{ route('notifications.markAllRead') }}" method="POST" class="d-inline {{ $unreadCount > 0 ? '' : 'd-none' }}">
                                     @csrf
                                     <button type="submit" class="btn btn-link btn-sm p-0 text-decoration-none">Mark all read</button>
@@ -49,18 +50,29 @@
                             </div>
                             <div class="list-group list-group-flush" id="notificationList">
                                 @forelse($unreadNotifications as $notification)
-                                    <a href="{{ route('products.show', $notification->data['product_id'] ?? 1) }}" class="list-group-item list-group-item-action notification-item py-2 px-3">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <strong class="text-dark">{{ $notification->data['product_name'] ?? 'Product Alert' }}</strong>
-                                            <span class="badge bg-warning text-dark">{{ $notification->data['current_quantity'] ?? 0 }} left</span>
+                                    @php
+                                        $notifType = $notification->data['type'] ?? 'low_stock';
+                                        $url = $notification->data['url'] ?? route('dashboard');
+                                        $title = $notification->data['title'] ?? $notification->data['product_name'] ?? 'Notification';
+                                    @endphp
+                                    <a href="{{ $url }}" class="list-group-item list-group-item-action notification-item py-2 px-3">
+                                        <div class="d-flex justify-content-between align-items-start gap-2">
+                                            <strong class="text-dark small">{{ $title }}</strong>
+                                            @if($notifType === 'purchase_order')
+                                                <span class="badge bg-primary">Purchase Order</span>
+                                            @elseif($notifType === 'sales_order')
+                                                <span class="badge bg-success">Sales Order</span>
+                                            @else
+                                                <span class="badge bg-warning text-dark">{{ $notification->data['current_quantity'] ?? 0 }} left</span>
+                                            @endif
                                         </div>
-                                        <p class="mb-1 text-muted small">{{ $notification->data['message'] ?? 'Stock is at or below reorder level.' }}</p>
-                                        <small class="text-secondary">{{ $notification->created_at->diffForHumans() }}</small>
+                                        <p class="mb-1 text-muted small text-truncate" style="max-width: 290px;">{{ $notification->data['message'] ?? 'Notification details.' }}</p>
+                                        <small class="text-secondary" style="font-size: 11px;">{{ $notification->created_at->diffForHumans() }}</small>
                                     </a>
                                 @empty
                                     <div class="p-4 text-center text-muted small">
                                         <i class="bi bi-check2-circle text-success fs-3 d-block mb-1"></i>
-                                        All stock levels are optimal. No alerts.
+                                        You are all caught up! No unread notifications.
                                     </div>
                                 @endforelse
                             </div>
@@ -173,20 +185,31 @@
                 }
 
                 payload.notifications.forEach((notification) => {
-                    const data = notification.data;
+                    const data = notification.data || {};
                     const link = document.createElement('a');
                     link.className = 'list-group-item list-group-item-action notification-item py-2 px-3';
-                    link.href = data.product_id
+                    link.href = data.url || (data.product_id
                         ? `${productsUrl}/${encodeURIComponent(data.product_id)}`
-                        : @json(route('dashboard'));
+                        : @json(route('dashboard')));
 
                     const heading = document.createElement('div');
-                    heading.className = 'd-flex justify-content-between align-items-start';
-                    addText(heading, 'strong', 'text-dark', data.product_name || 'Product Alert');
-                    addText(heading, 'span', 'badge bg-warning text-dark', `${data.current_quantity ?? 0} left`);
+                    heading.className = 'd-flex justify-content-between align-items-start gap-2';
+                    addText(heading, 'strong', 'text-dark small', data.title || data.product_name || 'Notification');
+
+                    let badgeClass = 'badge bg-warning text-dark';
+                    let badgeText = `${data.current_quantity ?? 0} left`;
+                    if (data.type === 'purchase_order') {
+                        badgeClass = 'badge bg-primary';
+                        badgeText = 'Purchase Order';
+                    } else if (data.type === 'sales_order') {
+                        badgeClass = 'badge bg-success';
+                        badgeText = 'Sales Order';
+                    }
+
+                    addText(heading, 'span', badgeClass, badgeText);
                     link.appendChild(heading);
 
-                    addText(link, 'p', 'mb-1 text-muted small', data.message || 'Stock is at or below reorder level.');
+                    addText(link, 'p', 'mb-1 text-muted small text-truncate', data.message || 'Notification details.');
                     addText(link, 'small', 'text-secondary', new Date(notification.created_at).toLocaleString());
                     list.appendChild(link);
                 });

@@ -26,7 +26,7 @@
         <div class="card-body p-3">
             <form method="GET" action="{{ route('products.index') }}">
                 <div class="row g-2 align-items-end">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label small fw-semibold">Search Catalog</label>
                         <div class="input-group">
                             <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
@@ -42,13 +42,22 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label small fw-semibold">Stock Status</label>
                         <select class="form-select" name="stock">
                             <option value="">All Stock Levels</option>
                             <option value="in_stock" @selected(request('stock') === 'in_stock')>In Stock (> Reorder)</option>
                             <option value="low" @selected(request('stock') === 'low')>Low Stock (≤ Reorder)</option>
                             <option value="out" @selected(request('stock') === 'out')>Out of Stock (0)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Sort Order</label>
+                        <select class="form-select" name="sort">
+                            <option value="recent" @selected(request('sort', 'recent') === 'recent')>Newest First</option>
+                            <option value="name" @selected(request('sort') === 'name')>Name (A - Z)</option>
+                            <option value="stock_low" @selected(request('sort') === 'stock_low')>Lowest Stock First</option>
+                            <option value="price_desc" @selected(request('sort') === 'price_desc')>Highest Price First</option>
                         </select>
                     </div>
                     <div class="col-md-2 d-flex gap-1">
@@ -84,9 +93,16 @@
                     @forelse($products as $product)
                         <tr>
                             <td>
-                                <a href="{{ route('products.show', $product) }}" class="fw-bold text-decoration-none text-dark d-block">
-                                    {{ $product->name }}
-                                </a>
+                                <div class="d-flex align-items-center gap-2">
+                                    <a href="{{ route('products.show', $product) }}" class="fw-bold text-decoration-none text-dark">
+                                        {{ $product->name }}
+                                    </a>
+                                    @if($product->created_at && $product->created_at->diffInHours(now()) <= 48)
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-1 py-0 small" style="font-size: 0.68rem;" title="Newly Added Product">
+                                            <i class="bi bi-sparkles me-1"></i>NEW
+                                        </span>
+                                    @endif
+                                </div>
                                 <small class="text-muted font-monospace"><i class="bi bi-upc me-1"></i>{{ $product->sku }}</small>
                             </td>
                             <td>

@@ -77,6 +77,7 @@
                         <th class="text-end">Est. Value (₱)</th>
                         <th class="text-center">Status</th>
                         <th>Order Date</th>
+                        <th>Created By</th>
                         <th class="text-end" style="width: 15%;">Actions</th>
                     </tr>
                 </thead>
@@ -89,8 +90,7 @@
                                 'cancelled' => 'danger',
                                 default => 'secondary',
                             };
-                            $price = $order->product?->unit_price ?? 0;
-                            $totalVal = $order->quantity * $price;
+                            $totalVal = $order->calculateTotal();
                         @endphp
                         <tr>
                             <td>
@@ -99,14 +99,18 @@
                                 </a>
                             </td>
                             <td>
-                                @if($order->product)
-                                    <a href="{{ route('products.show', $order->product) }}" class="fw-semibold text-dark text-decoration-none d-block">
-                                        {{ $order->product->name }}
-                                    </a>
-                                    <small class="text-muted font-monospace">{{ $order->product->sku }}</small>
-                                @else
-                                    <span class="text-muted fst-italic">Archived Product</span>
-                                @endif
+                                @forelse($order->items as $item)
+                                    @if($item->product)
+                                        <a href="{{ route('products.show', $item->product) }}" class="fw-semibold text-dark text-decoration-none d-block">
+                                            {{ $item->product->name }}
+                                        </a>
+                                        <small class="text-muted font-monospace">{{ $item->product->sku }} · {{ $item->quantity }} units</small>
+                                    @else
+                                        <span class="text-muted fst-italic d-block">Archived Product</span>
+                                    @endif
+                                @empty
+                                    <span class="text-muted fst-italic">No items</span>
+                                @endforelse
                             </td>
                             <td>
                                 @if($order->supplier)
@@ -118,7 +122,7 @@
                                 @endif
                             </td>
                             <td class="text-center fw-bold fs-6">
-                                {{ $order->quantity }} <small class="text-muted fw-normal">units</small>
+                                {{ $order->items->sum('quantity') }} <small class="text-muted fw-normal">units</small>
                             </td>
                             <td class="text-end fw-semibold">
                                 ₱{{ number_format($totalVal, 2) }}
@@ -132,7 +136,18 @@
                                 <small class="text-muted d-block">{{ $order->created_at->format('M d, Y') }}</small>
                                 <small class="text-secondary" style="font-size: 0.75rem;">{{ $order->created_at->diffForHumans() }}</small>
                             </td>
+                            <td>{{ $order->creator?->name ?? 'Automated Reorder' }}</td>
                             <td class="text-end text-nowrap">
+                                @can('approve', $order)
+                                    @if(in_array($order->status, ['draft', 'pending']))
+                                        <form class="d-inline" method="POST" action="{{ route('purchase-orders.approve', $order) }}">
+                                            @csrf
+                                            <button class="btn btn-sm btn-primary" type="submit">
+                                                <i class="bi bi-check2-circle me-1"></i>Approve
+                                            </button>
+                                        </form>
+                                    @endif
+                                @endcan
                                 <a class="btn btn-sm btn-outline-info" href="{{ route('purchase-orders.show', $order) }}" title="View Order Details">
                                     <i class="bi bi-eye"></i> View
                                 </a>
@@ -140,7 +155,7 @@
                                     <i class="bi bi-printer"></i>
                                 </a>
                                 @can('receive', $order)
-                                    <form class="d-inline" method="POST" action="{{ route('purchase-orders.receive', $order) }}" onsubmit="return confirm('Mark this purchase order as received and add {{ $order->quantity }} units to inventory?');">
+                                    <form class="d-inline" method="POST" action="{{ route('purchase-orders.receive', $order) }}" onsubmit="return confirm('Mark this purchase order as received and add {{ $order->items->sum('quantity') }} units to inventory?');">
                                         @csrf
                                         <button class="btn btn-sm btn-success" type="submit" title="Receive & Add Stock">
                                             <i class="bi bi-box-seam me-1"></i>Receive
@@ -151,7 +166,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-5">
+                            <td colspan="9" class="text-center text-muted py-5">
                                 <i class="bi bi-receipt fs-1 d-block mb-2 text-secondary"></i>
                                 <h5>No Purchase Orders Found</h5>
                                 <p class="small mb-3">No orders matched the selected filter criteria.</p>

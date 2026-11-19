@@ -24,14 +24,24 @@ class ProductController extends Controller
         $query = Product::with(['brand', 'category', 'supplier'])
             ->filter($request->only(['search', 'category', 'category_id', 'brand_id', 'stock']));
 
-        $products = $query->orderBy('name')
-            ->paginate(15)
+        $sort = $request->get('sort', 'recent');
+        if ($sort === 'name') {
+            $query->orderBy('name');
+        } elseif ($sort === 'stock_low') {
+            $query->orderBy('quantity', 'asc');
+        } elseif ($sort === 'price_desc') {
+            $query->orderBy('unit_price', 'desc');
+        } else {
+            // Default: newest added products shown first
+            $query->latest();
+        }
+
+        $products = $query->paginate(15)
             ->withQueryString();
 
-        // Default categories (Gym Equipment & Hardware Store standards)
+        // Standard Gym Equipment & Nutrition Categories
         $defaultCategories = [
             'Free Weights', 'Cardio Equipment', 'Strength Machines', 'Fitness Accessories', 'Supplements & Nutrition', 'Recovery & Mobility',
-            'Lumber', 'Hardware', 'Tools', 'Electrical', 'Plumbing', 'Paint',
         ];
         $categories = Category::orderBy('name')->pluck('name')->toArray();
         $allCategories = array_values(array_unique(array_merge($defaultCategories, $categories)));
@@ -51,7 +61,10 @@ class ProductController extends Controller
     {
         $this->authorize('create', Product::class);
 
-        return view('products.create', $this->formOptions());
+        $options = $this->formOptions();
+        $options['suggestedSku'] = Product::generateUniqueSku();
+
+        return view('products.create', $options);
     }
 
     /**
@@ -110,36 +123,36 @@ class ProductController extends Controller
 
         $product->load(['brand', 'category', 'supplier']);
 
-        // Transaction history with optional date range filtering
-        $txQuery = $product->transactions()->with('user')->orderBy('created_at', 'asc')->orderBy('id', 'asc');
+        $transactions = collect();
+        if (auth()->user()->isAdmin()) {
+            $txQuery = $product->transactions()->with('user')->orderBy('created_at', 'asc')->orderBy('id', 'asc');
 
-        if ($request->filled('start_date')) {
-            $txQuery->whereDate('created_at', '>=', $request->start_date);
-        }
-        if ($request->filled('end_date')) {
-            $txQuery->whereDate('created_at', '<=', $request->end_date);
-        }
-
-        $allTransactions = $txQuery->get();
-
-        // Compute running balance
-        $runningBalance = 0;
-        foreach ($allTransactions as $tx) {
-            $type = strtolower($tx->type);
-            $qty = (int) $tx->quantity;
-
-            if (in_array($type, ['stock_in', 'in', 'purchase'])) {
-                $runningBalance += abs($qty);
-            } elseif (in_array($type, ['stock_out', 'out', 'sale'])) {
-                $runningBalance -= abs($qty);
-            } elseif ($type === 'adjustment') {
-                $runningBalance += $qty;
+            if ($request->filled('start_date')) {
+                $txQuery->whereDate('created_at', '>=', $request->start_date);
             }
-            $tx->running_balance = $runningBalance;
-        }
+            if ($request->filled('end_date')) {
+                $txQuery->whereDate('created_at', '<=', $request->end_date);
+            }
 
-        // Display newest first in view
-        $transactions = $allTransactions->reverse()->values();
+            $allTransactions = $txQuery->get();
+
+            $runningBalance = 0;
+            foreach ($allTransactions as $tx) {
+                $type = strtolower($tx->type);
+                $qty = (int) $tx->quantity;
+
+                if (in_array($type, ['stock_in', 'in', 'purchase'])) {
+                    $runningBalance += abs($qty);
+                } elseif (in_array($type, ['stock_out', 'out', 'sale'])) {
+                    $runningBalance -= abs($qty);
+                } elseif ($type === 'adjustment') {
+                    $runningBalance += $qty;
+                }
+                $tx->running_balance = $runningBalance;
+            }
+
+            $transactions = $allTransactions->reverse()->values();
+        }
 
         return view('products.show', [
             'product' => $product,
@@ -207,7 +220,6 @@ class ProductController extends Controller
     {
         $defaultCategories = [
             'Free Weights', 'Cardio Equipment', 'Strength Machines', 'Fitness Accessories', 'Supplements & Nutrition', 'Recovery & Mobility',
-            'Lumber', 'Hardware', 'Tools', 'Electrical', 'Plumbing', 'Paint',
         ];
         $dbCategories = Category::orderBy('name')->pluck('name')->toArray();
         $allCategories = array_values(array_unique(array_merge($defaultCategories, $dbCategories)));
@@ -225,6 +237,11 @@ class ProductController extends Controller
      */
     private function validateProduct(Request $request, ?Product $product = null): array
     {
+        // Auto-generate SKU if omitted in demo
+        if (!$request->filled('sku')) {
+            $request->merge(['sku' => Product::generateUniqueSku($request->input('category'))]);
+        }
+
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'sku' => ['required', 'string', 'max:100', Rule::unique('products', 'sku')->ignore($product)],

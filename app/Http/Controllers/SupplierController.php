@@ -36,7 +36,7 @@ class SupplierController extends Controller
         $this->authorize('view', $supplier);
 
         $supplier->load(['products' => fn ($q) => $q->orderBy('name')]);
-        $purchaseOrders = $supplier->purchaseOrders()->with('product')->latest()->paginate(10);
+        $purchaseOrders = $supplier->purchaseOrders()->with(['product', 'items.product'])->latest()->paginate(10);
         $performance = $supplier->calculatePerformance();
 
         return view('suppliers.show', compact('supplier', 'purchaseOrders', 'performance'));

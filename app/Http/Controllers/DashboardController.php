@@ -11,6 +11,8 @@ class DashboardController extends Controller
 {
     public function index(): View
     {
+        $user = request()->user();
+
         return view('dashboard', [
             'totalProducts' => Product::count(),
             'lowStock' => Product::whereColumn('quantity', '<=', 'reorder_level')
@@ -19,8 +21,10 @@ class DashboardController extends Controller
             'outOfStock' => Product::where('quantity', 0)->count(),
             'inventoryValue' => Product::query()->selectRaw('COALESCE(SUM(quantity * unit_price), 0) as value')->value('value'),
             'recentProducts' => Product::with(['brand', 'category'])->latest()->take(8)->get(),
-            'pendingOrders' => PurchaseOrder::with(['product', 'supplier'])->where('status', 'pending')->latest()->take(5)->get(),
-            'recentTransactions' => InventoryTransaction::with(['product', 'user'])->latest()->take(8)->get(),
+            'pendingOrders' => PurchaseOrder::with(['product', 'items.product', 'supplier'])->where('status', 'pending')->latest()->take(5)->get(),
+            'recentTransactions' => $user->isAdmin()
+                ? InventoryTransaction::with(['product', 'user'])->latest()->take(8)->get()
+                : collect(),
         ]);
     }
 }

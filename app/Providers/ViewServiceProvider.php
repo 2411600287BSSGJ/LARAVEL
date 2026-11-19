@@ -26,7 +26,7 @@ class ViewServiceProvider extends ServiceProvider
         // 1. Pending Purchase Orders Widget Composer
         View::composer('widgets.pending-orders', function ($view) {
             $pendingOrdersCount = PurchaseOrder::where('status', 'pending')->count();
-            $pendingOrders = PurchaseOrder::with(['product', 'supplier'])
+            $pendingOrders = PurchaseOrder::with(['product', 'items.product', 'supplier'])
                 ->where('status', 'pending')
                 ->latest()
                 ->take(5)
@@ -40,7 +40,7 @@ class ViewServiceProvider extends ServiceProvider
 
         // 2. Recent Purchase Orders Widget Composer
         View::composer('widgets.recent-orders', function ($view) {
-            $recentOrders = PurchaseOrder::with(['product', 'supplier'])
+            $recentOrders = PurchaseOrder::with(['product', 'items.product', 'supplier'])
                 ->latest()
                 ->take(6)
                 ->get();
